@@ -1,0 +1,6 @@
+{
+  "name": "সুৰ (Xur) — Lyrics & Music Community Platform",
+  "description": "Discover, share, and discuss song lyrics. Translate, transliterate, and interpret meanings together.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
