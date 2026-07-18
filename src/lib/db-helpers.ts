@@ -1073,64 +1073,11 @@ export async function fetchUserActivities(): Promise<UserActivity[]> {
   try {
     const qRef = query(collection(db, "user_activities"), orderBy("createdAt", "desc"), limit(25));
     const snap = await getDocs(qRef);
-    if (!snap.empty) {
-      return snap.docs.map(d => d.data() as UserActivity);
-    }
+    return snap.docs.map(d => d.data() as UserActivity);
   } catch (e) {
     console.warn("Firestore fetchUserActivities failed, loading local", e);
+    return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_ACTIVITIES) || "[]");
   }
-
-  // If empty or offline, return local activities plus some simulated ones based on live user data
-  let local = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_ACTIVITIES) || "[]");
-  
-  // Clean up any old seed/cached activity that used "Rupanta Saikia" to ensure it's removed immediately from localStorage
-  let hasOldName = false;
-  local = local.map((act: any) => {
-    if (act.username === "Rupanta Saikia") {
-      hasOldName = true;
-      return { ...act, username: "Bhupen_Hazarika_Archives" };
-    }
-    return act;
-  });
-  
-  if (hasOldName) {
-    localStorage.setItem(LOCAL_STORAGE_KEY_ACTIVITIES, JSON.stringify(local));
-  }
-
-  if (local.length === 0) {
-    const seedActivities: UserActivity[] = [
-      {
-        id: "act_seed1",
-        userId: "system",
-        username: "Bhupen_Hazarika_Archives",
-        actionType: "lyrics_edit",
-        details: "Contributed transliteration edits to 'প্ৰতিধ্বনি শুনো মই'",
-        songId: "pratidhwani-hazarika",
-        createdAt: new Date(Date.now() - 3 * 3600000).toISOString()
-      },
-      {
-        id: "act_seed2",
-        userId: "anonymous",
-        username: "Joydeep G.",
-        actionType: "upvote",
-        details: "Upvoted 'Ekla Cholo Re' by Rabindranath Tagore",
-        songId: "ekla-cholo-tagore",
-        createdAt: new Date(Date.now() - 8 * 3600000).toISOString()
-      },
-      {
-        id: "act_seed3",
-        userId: "system",
-        username: "Moderator",
-        actionType: "song_submit",
-        details: "Added classic masterpiece 'Imagine'",
-        songId: "imagine-lennon",
-        createdAt: new Date(Date.now() - 24 * 3600000).toISOString()
-      }
-    ];
-    localStorage.setItem(LOCAL_STORAGE_KEY_ACTIVITIES, JSON.stringify(seedActivities));
-    return seedActivities;
-  }
-  return local;
 }
 
 

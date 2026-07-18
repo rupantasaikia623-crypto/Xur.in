@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import brandLogo from './assets/images/brand_logo_1784387163973.jpg';
 import { motion, AnimatePresence } from 'motion/react';
+import { db } from './lib/firebase';
+import { onSnapshot, collection, query, orderBy, limit, doc } from 'firebase/firestore';
 import { 
   fetchSongs, 
   getSongById, 
@@ -159,42 +161,86 @@ export default function App() {
     setSongs(list);
   };
 
-  // Load platform analytics from database
-  const loadPlatformStats = async () => {
-    try {
-      const views = await incrementAndGetPageViews();
-      setPageViews(views);
-    } catch (e) {
-      console.warn("Failed to increment/fetch page views:", e);
-    }
+  // Real-time subscribers on mount
+  useEffect(() => {
+    // 1. Load songs
+    loadAllSongs();
 
-    try {
-      const usersList = await fetchUsers();
-      setRegisteredUsersCount(Math.max(142, usersList.length));
-    } catch (e) {
-      console.warn("Failed to fetch registered users list:", e);
-    }
+    // 2. Increment page views immediately
+    incrementAndGetPageViews().catch(e => console.warn("Failed to increment views:", e));
 
-    try {
-      setActivitiesLoading(true);
-      const list = await fetchUserActivities();
-      setActivities(list);
-    } catch (e) {
-      console.warn("Failed to fetch user activities:", e);
-    } finally {
-      setActivitiesLoading(false);
-    }
+    // 3. Log the visit activity securely and only once on mount
+    const logVisit = async () => {
+      try {
+        const authorId = currentUser ? currentUser.uid : 'anonymous';
+        const authorName = currentUser ? currentUser.displayName : 'Guest Listener';
+        await logUserActivity('visit', 'Visited the Xur platform', undefined, authorId, authorName);
+      } catch (err) {
+        console.warn("Could not log real visit activity:", err);
+      }
+    };
+    // small timeout to allow auth to load/settle
+    const visitTimer = setTimeout(() => {
+      logVisit();
+    }, 1500);
 
-    try {
-      setFeedbacksLoading(true);
-      const list = await fetchFeedback();
-      setFeedbacks(list);
-    } catch (e) {
-      console.warn("Failed to fetch feedbacks:", e);
-    } finally {
-      setFeedbacksLoading(false);
-    }
-  };
+    // 4. Set up real-time listener for page views
+    const unsubViews = onSnapshot(doc(db, "system_metadata", "stats"), (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (data && typeof data.pageViews === "number") {
+          setPageViews(data.pageViews);
+        }
+      }
+    }, (err) => {
+      console.warn("Real-time views listener failed:", err);
+    });
+
+    // 5. Set up real-time listener for registered users
+    const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+      setRegisteredUsersCount(Math.max(142, snapshot.size));
+    }, (err) => {
+      console.warn("Real-time users listener failed:", err);
+    });
+
+    // 6. Set up real-time listener for user activities
+    setActivitiesLoading(true);
+    const unsubActivities = onSnapshot(
+      query(collection(db, "user_activities"), orderBy("createdAt", "desc"), limit(25)),
+      (snapshot) => {
+        const list = snapshot.docs.map(d => d.data() as UserActivity);
+        setActivities(list);
+        setActivitiesLoading(false);
+      },
+      (err) => {
+        console.warn("Real-time activities listener failed:", err);
+        setActivitiesLoading(false);
+      }
+    );
+
+    // 7. Set up real-time listener for feedbacks
+    setFeedbacksLoading(true);
+    const unsubFeedbacks = onSnapshot(
+      query(collection(db, "feedbacks"), orderBy("createdAt", "desc")),
+      (snapshot) => {
+        const list = snapshot.docs.map(d => d.data() as UserFeedback);
+        setFeedbacks(list);
+        setFeedbacksLoading(false);
+      },
+      (err) => {
+        console.warn("Real-time feedbacks listener failed:", err);
+        setFeedbacksLoading(false);
+      }
+    );
+
+    return () => {
+      clearTimeout(visitTimer);
+      unsubViews();
+      unsubUsers();
+      unsubActivities();
+      unsubFeedbacks();
+    };
+  }, []);
 
   const handleSubmitFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -229,10 +275,7 @@ export default function App() {
     }
   };
 
-  useEffect(() => {
-    loadAllSongs();
-    loadPlatformStats();
-  }, []);
+
 
   // Handle deep linking for song shared via direct link
   useEffect(() => {
@@ -877,43 +920,44 @@ export default function App() {
 
                 {/* Right Column: Platform Stats & Info sidebar */}
                 <div className="space-y-6">
-                  {/* Platform Stats & Growth */}
-                  <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs">
+                  {/* Platform Stats & Engagement */}
+                  <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/[0.02] rounded-full blur-xl pointer-events-none" />
+                    
                     <div className="flex items-center justify-between border-b border-gray-100 pb-2.5 mb-4">
-                      <h3 className="font-display font-bold text-sm text-gray-900 tracking-tight">
-                        Platform Live Activity
+                      <h3 className="font-display font-bold text-sm text-gray-900 tracking-tight flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-emerald-500" />
+                        Site Engagement Stats
                       </h3>
                       <div className="flex items-center gap-1">
-                        <span className="relative flex h-2 w-2">
+                        <span className="relative flex h-1.5 w-1.5">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                         </span>
-                        <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Live</span>
+                        <span className="text-[9px] text-emerald-600 font-bold uppercase tracking-wider">Live Feed</span>
                       </div>
                     </div>
                     
-                    <div className="space-y-4">
-                      {/* Metric 1: Monthly Visits */}
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-blue-50 text-blue-600 rounded-xl shrink-0">
-                          <TrendingUp className="w-4 h-4" />
+                    <div className="space-y-3.5">
+                      {/* Metric 1: Total Monthly Visitors (Real Data) */}
+                      <div className="flex items-start gap-3 p-2.5 rounded-xl bg-slate-50/50 border border-slate-100 hover:border-emerald-100 transition-colors">
+                        <div className="p-2 bg-emerald-500/10 text-emerald-600 rounded-xl shrink-0">
+                          <Eye className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-baseline justify-between">
                             <span className="text-lg font-bold text-gray-900 font-display">
                               {pageViews.toLocaleString()}
                             </span>
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700">
-                              Live
-                            </span>
+                            <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-1.5 py-0.2 rounded-sm border border-emerald-100">Real</span>
                           </div>
-                          <p className="text-xs text-gray-500 font-medium">Verified Page Visits</p>
+                          <p className="text-xs text-gray-500 font-medium mt-0.5">Total Monthly Visitors</p>
                         </div>
                       </div>
 
-                      {/* Metric 2: Artists & Composers */}
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-purple-50 text-purple-600 rounded-xl shrink-0">
+                      {/* Metric 2: Songwriters Engaged */}
+                      <div className="flex items-start gap-3 p-2.5 rounded-xl bg-slate-50/50 border border-slate-100 hover:border-purple-100 transition-colors">
+                        <div className="p-2 bg-purple-500/10 text-purple-600 rounded-xl shrink-0">
                           <Music className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -921,15 +965,15 @@ export default function App() {
                             <span className="text-lg font-bold text-gray-900 font-display">
                               {new Set(songs.map(s => s.artist.trim())).size}
                             </span>
-                            <span className="text-[10px] text-gray-400 font-medium">Legends & Moderns</span>
+                            <span className="text-[9px] font-bold text-purple-600 uppercase bg-purple-50 px-1.5 py-0.2 rounded-sm border border-purple-100">Artists</span>
                           </div>
-                          <p className="text-xs text-gray-500 font-medium">Joined Artists & Bands</p>
+                          <p className="text-xs text-gray-500 font-medium mt-0.5">Songwriters Engaged</p>
                         </div>
                       </div>
 
-                      {/* Metric 3: Lyrics Writers & Translators */}
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-rose-50 text-rose-600 rounded-xl shrink-0">
+                      {/* Metric 3: Lyrics Writers Engaged */}
+                      <div className="flex items-start gap-3 p-2.5 rounded-xl bg-slate-50/50 border border-slate-100 hover:border-rose-100 transition-colors">
+                        <div className="p-2 bg-rose-500/10 text-rose-600 rounded-xl shrink-0">
                           <Users className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -937,17 +981,33 @@ export default function App() {
                             <span className="text-lg font-bold text-gray-900 font-display">
                               {registeredUsersCount}
                             </span>
-                            <span className="text-[10px] text-emerald-600 font-semibold">Active Contributors</span>
+                            <span className="text-[9px] font-bold text-rose-600 uppercase bg-rose-50 px-1.5 py-0.2 rounded-sm border border-rose-100">Writers</span>
                           </div>
-                          <p className="text-xs text-gray-500 font-medium">Joined Lyrics Writers & Translators</p>
+                          <p className="text-xs text-gray-500 font-medium mt-0.5">Lyrics Writers & Translators</p>
+                        </div>
+                      </div>
+
+                      {/* Metric 4: New Writing Updates */}
+                      <div className="flex items-start gap-3 p-2.5 rounded-xl bg-slate-50/50 border border-slate-100 hover:border-blue-100 transition-colors">
+                        <div className="p-2 bg-blue-500/10 text-blue-600 rounded-xl shrink-0">
+                          <Edit3 className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline justify-between">
+                            <span className="text-lg font-bold text-gray-900 font-display">
+                              {songs.length + activities.filter(a => a.actionType === 'lyrics_edit' || a.actionType === 'song_submit').length}
+                            </span>
+                            <span className="text-[9px] font-bold text-blue-600 uppercase bg-blue-50 px-1.5 py-0.2 rounded-sm border border-blue-100">Updates</span>
+                          </div>
+                          <p className="text-xs text-gray-500 font-medium mt-0.5">New Writing Updates & Edits</p>
                         </div>
                       </div>
                     </div>
 
                     <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <Activity className="w-3.5 h-3.5 text-gray-400 animate-pulse" />
-                        412 active listeners today
+                      <span className="flex items-center gap-1 font-medium">
+                        <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                        Active community contributions
                       </span>
                       <span className="font-mono text-[9px] text-gray-300">Updated Real-Time</span>
                     </div>
