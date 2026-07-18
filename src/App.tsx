@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import brandLogo from './assets/images/brand_logo_1784387163973.jpg';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   fetchSongs, 
@@ -133,6 +134,7 @@ export default function App() {
   const [feedbacks, setFeedbacks] = useState<UserFeedback[]>([]);
   const [feedbacksLoading, setFeedbacksLoading] = useState<boolean>(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState<boolean>(false);
+  const [feedbackTab, setFeedbackTab] = useState<'write' | 'view'>('write');
   const [fbRating, setFbRating] = useState<number>(5);
   const [fbCategory, setFbCategory] = useState<'bug' | 'suggestion' | 'praise' | 'other'>('praise');
   const [fbMessage, setFbMessage] = useState<string>('');
@@ -984,25 +986,90 @@ export default function App() {
                     )}
                   </div>
 
-                  {/* Webpage Interactive Feedback Card */}
-                  <div className="bg-gradient-to-tr from-slate-900 via-teal-950 to-slate-950 text-white border border-gray-800 rounded-2xl p-5 shadow-sm">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="p-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-lg">
-                        <Star className="w-4 h-4 fill-emerald-300" />
+                  {/* Webpage Feedback Card */}
+                  <div className="bg-gradient-to-br from-emerald-500/[0.04] via-white to-teal-500/[0.02] border border-emerald-200/80 rounded-2xl p-5 shadow-xs relative overflow-hidden ring-4 ring-emerald-500/[0.01]">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
+                    
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-100/50 pb-3 mb-3 relative z-10">
+                      <div>
+                        <h3 className="font-display font-bold text-sm text-slate-900 tracking-tight flex items-center gap-1.5">
+                          <span className="flex h-2 w-2 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          </span>
+                          Website Feedback
+                        </h3>
+                        <p className="text-[10px] text-gray-500 mt-0.5">Help us build Sur together!</p>
                       </div>
-                      <h3 className="font-display font-bold text-sm text-white tracking-tight">
-                        Enjoying Sur?
-                      </h3>
+                      <div className="flex items-center gap-1.5 self-start sm:self-center">
+                        <button
+                          onClick={() => {
+                            setFeedbackTab('write');
+                            setShowFeedbackModal(true);
+                          }}
+                          className="text-[10px] text-white font-bold bg-emerald-500 hover:bg-emerald-600 px-3 py-1.5 rounded-lg transition-all cursor-pointer shadow-xs active:scale-95 flex items-center gap-1 shrink-0"
+                        >
+                          <Star className="w-3 h-3 fill-white" />
+                          Give Feedback
+                        </button>
+                        <button
+                          onClick={() => {
+                            setFeedbackTab('view');
+                            setShowFeedbackModal(true);
+                          }}
+                          className="text-[10px] text-emerald-700 font-bold bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg transition-all cursor-pointer border border-emerald-200 shrink-0"
+                        >
+                          See All ({feedbacks.length})
+                        </button>
+                      </div>
                     </div>
-                    <p className="text-xs text-teal-200/70 leading-relaxed mb-4">
-                      Share your experience, report a website bug, or suggest new interactive features!
-                    </p>
-                    <button
-                      onClick={() => setShowFeedbackModal(true)}
-                      className="w-full text-center bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs py-2.5 px-4 rounded-xl transition-all cursor-pointer shadow-sm shadow-emerald-500/10 hover:-translate-y-[1px]"
-                    >
-                      Give Page Feedback
-                    </button>
+
+                    {feedbacksLoading ? (
+                      <div className="flex justify-center py-6">
+                        <Loader2 className="w-5 h-5 animate-spin text-emerald-500" />
+                      </div>
+                    ) : feedbacks.length === 0 ? (
+                      <div className="text-center py-6 relative z-10">
+                        <p className="text-xs text-gray-400">No feedback received yet.</p>
+                        <button
+                          onClick={() => {
+                            setFeedbackTab('write');
+                            setShowFeedbackModal(true);
+                          }}
+                          className="mt-2 text-[10px] text-emerald-600 font-bold hover:underline"
+                        >
+                          Be the first to say something!
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1 relative z-10">
+                        {feedbacks.slice(0, 5).map((fb) => (
+                          <div key={fb.id} className="text-[11px] border-b border-emerald-50/50 pb-2.5 last:border-0 last:pb-0">
+                            <div className="flex justify-between items-start gap-1">
+                              <span className="font-bold text-gray-900 flex items-center gap-1">
+                                {fb.username}
+                                <span className={`text-[8px] px-1 py-0.2 rounded-sm font-semibold capitalize ${
+                                  fb.category === 'bug' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
+                                  fb.category === 'praise' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                                  fb.category === 'suggestion' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
+                                  'bg-gray-50 text-gray-600 border border-gray-100'
+                                }`}>
+                                  {fb.category}
+                                </span>
+                              </span>
+                              <div className="flex items-center gap-0.5 text-amber-400 shrink-0">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <Star key={i} className={`w-2 h-2 ${i < fb.rating ? 'fill-amber-400' : 'text-gray-200'}`} />
+                                ))}
+                              </div>
+                            </div>
+                            <p className="text-gray-600 mt-1 leading-relaxed italic bg-white/70 p-1.5 rounded-lg border border-emerald-50/50 shadow-2xs">
+                              "{fb.message}"
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Language Distribution */}
@@ -1827,8 +1894,13 @@ export default function App() {
             </button>
 
             <div className="text-center mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center mx-auto mb-3 shadow-md shadow-emerald-500/10">
-                <Music className="w-6 h-6 text-white" />
+              <div className="w-14 h-14 rounded-2xl overflow-hidden border border-gray-100 flex items-center justify-center bg-white mx-auto mb-3 shadow-md shadow-emerald-500/5">
+                <img 
+                  src={brandLogo} 
+                  alt="Xur Logo" 
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
               </div>
               <h2 className="font-display font-bold text-xl text-gray-950 tracking-tight">
                 {authMode === 'login' ? "Welcome to Xur" : "Create Xur Account"}
@@ -1990,7 +2062,7 @@ export default function App() {
       {/* Webpage Feedback Modal */}
       {showFeedbackModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 relative">
+          <div className={`bg-white rounded-3xl p-6 sm:p-8 ${feedbackTab === 'view' ? 'max-w-2xl' : 'max-w-md'} w-full shadow-2xl border border-slate-100 relative transition-all duration-300 max-h-[85vh] flex flex-col`}>
             <button 
               onClick={() => {
                 setShowFeedbackModal(false);
@@ -2003,99 +2075,196 @@ export default function App() {
               <X className="w-5 h-5" />
             </button>
 
-            <div className="text-center mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-rose-500 flex items-center justify-center mx-auto mb-3 shadow-md shadow-amber-500/10 animate-pulse">
+            <div className="text-center mb-5 shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-rose-500 flex items-center justify-center mx-auto mb-2 shadow-md shadow-amber-500/10 animate-pulse">
                 <Star className="w-6 h-6 text-white fill-amber-100" />
               </div>
               <h2 className="font-display font-bold text-xl text-gray-950 tracking-tight">
-                We'd love your feedback!
+                Website Feedback
               </h2>
               <p className="text-xs text-gray-450 mt-1">
                 Help us craft Sur into the ultimate regional lyrics wiki.
               </p>
             </div>
 
-            <form onSubmit={handleSubmitFeedback} className="space-y-4">
-              {/* Star Rating selector */}
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 text-center">
-                  How would you rate your experience?
-                </label>
-                <div className="flex justify-center gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setFbRating(star)}
-                      className="p-1 hover:scale-110 transition-transform cursor-pointer"
-                    >
-                      <Star 
-                        className={`w-8 h-8 transition-colors ${
-                          star <= fbRating ? 'text-amber-400 fill-amber-400' : 'text-gray-200'
-                        }`}
-                      />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Feedback type category */}
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
-                  Category
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {(['praise', 'suggestion', 'bug', 'other'] as const).map((cat) => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setFbCategory(cat)}
-                      className={`py-2 px-3 text-xs font-bold rounded-xl border transition-all capitalize ${
-                        fbCategory === cat
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : 'bg-gray-50 text-gray-600 border-gray-100 hover:bg-gray-100'
-                      }`}
-                    >
-                      {cat === 'bug' ? '🐛 Bug Report' : cat === 'praise' ? '❤️ Love It' : cat === 'suggestion' ? '💡 Suggestion' : '❓ Other'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Message field */}
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
-                  Your Message
-                </label>
-                <textarea
-                  value={fbMessage}
-                  onChange={(e) => setFbMessage(e.target.value)}
-                  placeholder="Share details of your experience, suggestions for new features, or any bugs you encountered..."
-                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none text-gray-800 h-28 resize-none focus:border-emerald-500 transition-colors"
-                  required
-                />
-              </div>
-
-              {/* Contributor badge context */}
-              <div className="text-[10px] text-gray-400 font-medium text-center">
-                Submitting as <span className="font-bold text-gray-700">{currentUser ? currentUser.displayName : 'Guest Listener (Anonymous)'}</span>
-              </div>
-
+            {/* Tab Selector */}
+            <div className="flex border-b border-gray-100 mb-5 shrink-0">
               <button
-                type="submit"
-                disabled={fbSubmitting}
-                className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white font-bold text-xs py-2.5 rounded-xl transition-all cursor-pointer shadow-sm flex items-center justify-center gap-2"
+                type="button"
+                onClick={() => setFeedbackTab('write')}
+                className={`flex-1 pb-2.5 text-xs sm:text-sm font-bold text-center transition-all border-b-2 cursor-pointer ${
+                  feedbackTab === 'write'
+                    ? 'border-emerald-500 text-emerald-600 font-extrabold'
+                    : 'border-transparent text-gray-400 hover:text-gray-600'
+                }`}
               >
-                {fbSubmitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-white" />
-                ) : (
-                  <>
-                    <Send className="w-3.5 h-3.5" />
-                    Submit Feedback
-                  </>
-                )}
+                Submit Feedback
               </button>
-            </form>
+              <button
+                type="button"
+                onClick={() => setFeedbackTab('view')}
+                className={`flex-1 pb-2.5 text-xs sm:text-sm font-bold text-center transition-all border-b-2 cursor-pointer ${
+                  feedbackTab === 'view'
+                    ? 'border-emerald-500 text-emerald-600 font-extrabold'
+                    : 'border-transparent text-gray-400 hover:text-gray-600'
+                }`}
+              >
+                Feedbacks Given ({feedbacks.length})
+              </button>
+            </div>
+
+            {/* Tab Contents */}
+            <div className="overflow-y-auto pr-1 flex-1">
+              {feedbackTab === 'write' ? (
+                <form onSubmit={handleSubmitFeedback} className="space-y-4">
+                  {/* Star Rating selector */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 text-center">
+                      How would you rate your experience?
+                    </label>
+                    <div className="flex justify-center gap-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setFbRating(star)}
+                          className="p-1 hover:scale-110 transition-transform cursor-pointer"
+                        >
+                          <Star 
+                            className={`w-8 h-8 transition-colors ${
+                              star <= fbRating ? 'text-amber-400 fill-amber-400' : 'text-gray-200'
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Feedback type category */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                      Category
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(['praise', 'suggestion', 'bug', 'other'] as const).map((cat) => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setFbCategory(cat)}
+                          className={`py-2 px-3 text-xs font-bold rounded-xl border transition-all capitalize ${
+                            fbCategory === cat
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-gray-50 text-gray-600 border-gray-100 hover:bg-gray-100'
+                          }`}
+                        >
+                          {cat === 'bug' ? '🐛 Bug Report' : cat === 'praise' ? '❤️ Love It' : cat === 'suggestion' ? '💡 Suggestion' : '❓ Other'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Message field */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                      Your Message
+                    </label>
+                    <textarea
+                      value={fbMessage}
+                      onChange={(e) => setFbMessage(e.target.value)}
+                      placeholder="Share details of your experience, suggestions for new features, or any bugs you encountered..."
+                      className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none text-gray-800 h-28 resize-none focus:border-emerald-500 transition-colors"
+                      required
+                    />
+                  </div>
+
+                  {/* Contributor badge context */}
+                  <div className="text-[10px] text-gray-400 font-medium text-center">
+                    Submitting as <span className="font-bold text-gray-700">{currentUser ? currentUser.displayName : 'Guest Listener (Anonymous)'}</span>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={fbSubmitting}
+                    className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white font-bold text-xs py-2.5 rounded-xl transition-all cursor-pointer shadow-sm flex items-center justify-center gap-2"
+                  >
+                    {fbSubmitting ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    ) : (
+                      <>
+                        <Send className="w-3.5 h-3.5" />
+                        Submit Feedback
+                      </>
+                    )}
+                  </button>
+                </form>
+              ) : (
+                <div className="space-y-4">
+                  {feedbacksLoading ? (
+                    <div className="flex flex-col items-center justify-center py-12 gap-3">
+                      <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
+                      <span className="text-xs text-gray-450 font-medium">Loading community feedbacks...</span>
+                    </div>
+                  ) : feedbacks.length === 0 ? (
+                    <div className="text-center py-12 bg-gray-50 rounded-2xl border border-gray-100">
+                      <Sparkles className="w-8 h-8 text-amber-400 mx-auto mb-2 opacity-60 animate-bounce" />
+                      <p className="text-xs sm:text-sm font-bold text-gray-700">No feedbacks yet!</p>
+                      <p className="text-[11px] text-gray-450 mt-1 max-w-xs mx-auto">Be the first to submit a constructive suggestion or praise to build Sur together.</p>
+                      <button
+                        type="button"
+                        onClick={() => setFeedbackTab('write')}
+                        className="mt-4 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                      >
+                        Write First Feedback
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 max-h-[450px] overflow-y-auto p-0.5">
+                      {feedbacks.map((fb) => (
+                        <div 
+                          key={fb.id} 
+                          className="bg-gray-50/50 border border-gray-100 hover:border-gray-200 hover:bg-white rounded-2xl p-4 transition-all flex flex-col justify-between shadow-xs group"
+                        >
+                          <div>
+                            <div className="flex justify-between items-start gap-2 mb-2">
+                              <div>
+                                <span className="font-bold text-xs sm:text-sm text-gray-950 block">
+                                  {fb.username || "Guest Listener"}
+                                </span>
+                                <span className={`inline-block text-[9px] font-extrabold px-1.5 py-0.5 rounded-md mt-1 uppercase ${
+                                  fb.category === 'bug' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
+                                  fb.category === 'praise' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                                  fb.category === 'suggestion' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
+                                  'bg-blue-50 text-blue-600 border border-blue-100'
+                                }`}>
+                                  {fb.category}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-0.5 text-amber-400">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <Star key={i} className={`w-3 h-3 ${i < fb.rating ? 'fill-amber-400' : 'text-gray-250'}`} />
+                                ))}
+                              </div>
+                            </div>
+                            <p className="text-xs text-gray-750 leading-relaxed italic bg-white border border-gray-100/60 p-2.5 rounded-xl group-hover:shadow-xs transition-shadow">
+                              "{fb.message}"
+                            </p>
+                          </div>
+                          <div className="text-[10px] text-gray-400 mt-3 text-right font-mono font-medium">
+                            {new Date(fb.createdAt).toLocaleDateString(undefined, { 
+                              year: 'numeric', 
+                              month: 'short', 
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -2112,8 +2281,13 @@ export default function App() {
             {/* About Our Website Section */}
             <div className="lg:col-span-5 space-y-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-500/10">
-                  <span className="font-display font-black text-white text-base">সু</span>
+                <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center bg-white shadow-md shadow-emerald-500/5">
+                  <img 
+                    src={brandLogo} 
+                    alt="Xur Logo" 
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
                 </div>
                 <span className="font-display font-bold text-lg text-white tracking-tight">About Us</span>
               </div>

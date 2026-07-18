@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import brandLogo from '../assets/images/brand_logo_1784387163973.jpg';
 import { 
   Globe2, 
   Search, 
@@ -69,8 +70,13 @@ export default function Navbar({
             className="flex items-center gap-2 cursor-pointer shrink-0"
             id="nav-logo"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-500/10">
-              <Music className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-xl overflow-hidden border border-gray-100 flex items-center justify-center bg-white shadow-xs">
+              <img 
+                src={brandLogo} 
+                alt="Xur Logo" 
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
             </div>
             <div>
               <span className="font-display font-bold text-lg sm:text-xl text-gray-900 tracking-tight block">
