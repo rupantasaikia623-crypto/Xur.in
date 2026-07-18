@@ -5,10 +5,59 @@ import { Music, Eye, ThumbsUp, MessageSquare, Globe2 } from 'lucide-react';
 interface SongCardProps {
   song: Song;
   onClick: () => void;
+  searchQuery?: string;
   key?: string | number;
 }
 
-export default function SongCard({ song, onClick }: SongCardProps) {
+export default function SongCard({ song, onClick, searchQuery }: SongCardProps) {
+  // Helper to find and highlight matching line
+  const getMatchingSnippet = () => {
+    if (!searchQuery) return null;
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return null;
+
+    // Search lyrics
+    const lyricLines = song.lyrics.split('\n');
+    let matchedLine = lyricLines.find(l => l.toLowerCase().includes(q));
+    let source = 'Lyrics';
+
+    // Fallback to translit
+    if (!matchedLine && song.transliteration) {
+      const translitLines = song.transliteration.split('\n');
+      matchedLine = translitLines.find(l => l.toLowerCase().includes(q));
+      source = 'Transliteration';
+    }
+
+    // Fallback to translation
+    if (!matchedLine && song.translation) {
+      const translationLines = song.translation.split('\n');
+      matchedLine = translationLines.find(l => l.toLowerCase().includes(q));
+      source = 'Translation';
+    }
+
+    if (matchedLine) {
+      const trimmed = matchedLine.trim();
+      const idx = trimmed.toLowerCase().indexOf(q);
+      
+      // Return snippet with bold search term
+      return (
+        <div className="mt-3 p-2 bg-emerald-50/50 border border-emerald-100 rounded-lg text-xs">
+          <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-600 block mb-0.5 font-mono">{source} Match</span>
+          <span className="text-gray-600 italic">
+            {idx > 25 ? '...' : ''}
+            {trimmed.substring(Math.max(0, idx - 25), idx)}
+            <mark className="bg-amber-100 text-amber-950 font-semibold px-0.5 rounded-sm">{trimmed.substring(idx, idx + q.length)}</mark>
+            {trimmed.substring(idx + q.length, Math.min(trimmed.length, idx + q.length + 30))}
+            {idx + q.length + 30 < trimmed.length ? '...' : ''}
+          </span>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const matchedSnippet = getMatchingSnippet();
+
   return (
     <div 
       onClick={onClick}
@@ -32,11 +81,14 @@ export default function SongCard({ song, onClick }: SongCardProps) {
           {song.title}
         </h3>
         
-        <p className="text-sm font-medium text-gray-500 mb-4 tracking-tight">
+        <p className="text-sm font-medium text-gray-500 mb-2 tracking-tight">
           {song.artist}
         </p>
 
-        {song.tags && song.tags.length > 0 && (
+        {/* Display lyrics snippet matching search query */}
+        {matchedSnippet}
+
+        {song.tags && song.tags.length > 0 && !matchedSnippet && (
           <div className="flex flex-wrap gap-1 mb-4">
             {song.tags.slice(0, 3).map((tag, i) => (
               <span 
@@ -50,7 +102,7 @@ export default function SongCard({ song, onClick }: SongCardProps) {
         )}
       </div>
 
-      <div className="flex items-center justify-between border-t border-gray-50 pt-4 mt-2 text-xs font-mono text-gray-400">
+      <div className="flex items-center justify-between border-t border-gray-50 pt-4 mt-3 text-xs font-mono text-gray-400">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1" title="Views">
             <Eye className="w-3.5 h-3.5 text-gray-300 group-hover:text-emerald-500/60 transition-colors" />

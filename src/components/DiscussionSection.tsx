@@ -5,7 +5,8 @@ import {
   addComment, 
   toggleCommentUpvote, 
   addCommentReaction, 
-  reportFlag 
+  reportFlag,
+  logUserActivity
 } from '../lib/db-helpers';
 import { 
   MessageSquare, 
@@ -78,6 +79,18 @@ export default function DiscussionSection({
       quotedLine: quotedLineInput || undefined,
       parentId: replyToId
     });
+
+    try {
+      await logUserActivity(
+        'comment',
+        `Discussed: "${content.trim().substring(0, 45)}${content.trim().length > 45 ? '...' : ''}" on "${song.title}"`,
+        song.id,
+        authorId,
+        authorName
+      );
+    } catch (e) {
+      console.warn("Activity logging failed on comment submit:", e);
+    }
 
     setContent('');
     setReplyToId(null);

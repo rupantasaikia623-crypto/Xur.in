@@ -35,6 +35,7 @@ export interface Song {
   isFlagged: boolean;
   flagReason?: string;
   currentVersionId?: string;
+  hasUserSubmitted?: boolean;
 }
 
 export interface Comment {
@@ -76,3 +77,24 @@ export interface FlagReport {
   status: 'pending' | 'resolved' | 'dismissed';
   createdAt: string;
 }
+
+export interface UserFeedback {
+  id: string;
+  userId: string;
+  username: string;
+  rating: number; // 1-5
+  category: 'bug' | 'suggestion' | 'praise' | 'other';
+  message: string;
+  createdAt: string;
+}
+
+export interface UserActivity {
+  id: string;
+  userId: string;
+  username: string;
+  actionType: 'upvote' | 'comment' | 'song_submit' | 'lyrics_edit' | 'feedback_submit' | 'share' | 'visit';
+  details: string;
+  songId?: string;
+  createdAt: string;
+}
+

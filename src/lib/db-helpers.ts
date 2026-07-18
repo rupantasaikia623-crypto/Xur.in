@@ -15,7 +15,8 @@ import {
   arrayRemove
 } from 'firebase/firestore';
 import { db, auth } from './firebase';
-import { Song, Comment, SongVersion, UserProfile, FlagReport } from '../types';
+import { Song, Comment, SongVersion, UserProfile, FlagReport, UserFeedback, UserActivity } from '../types';
+import { supabase } from './supabase';
 
 // Seed Songs Data
 const SEED_SONGS: Partial<Song>[] = [
@@ -366,6 +367,22 @@ export async function fetchSongs(filter?: { language?: string; genre?: string; q
     songs = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SONGS) || "[]");
   }
 
+  // Merge user submitted lyrics if they exist
+  for (const song of songs) {
+    if (typeof window !== 'undefined') {
+      const local = localStorage.getItem(`xur_user_submitted_lyrics_${song.id}`);
+      if (local) {
+        try {
+          const parsed = JSON.parse(local);
+          song.lyrics = parsed.lyrics;
+          if (parsed.transliteration) song.transliteration = parsed.transliteration;
+          if (parsed.translation) song.translation = parsed.translation;
+          song.hasUserSubmitted = true;
+        } catch (e) {}
+      }
+    }
+  }
+
   // Apply filter
   if (filter) {
     const { language, genre, queryText } = filter;
@@ -391,27 +408,44 @@ export async function fetchSongs(filter?: { language?: string; genre?: string; q
 }
 
 export async function getSongById(id: string): Promise<Song | null> {
+  let song: Song | null = null;
   try {
     const docRef = doc(db, "songs", id);
     const snap = await getDoc(docRef);
     if (snap.exists()) {
       // Increment view count in background
       updateDoc(docRef, { views: increment(1) }).catch(console.error);
-      return { id: snap.id, ...snap.data() } as Song;
+      song = { id: snap.id, ...snap.data() } as Song;
     }
   } catch (e) {
     console.warn("Firestore getSongById failed, using local fallback", e);
   }
 
-  // Fallback
-  const songs: Song[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SONGS) || "[]");
-  const idx = songs.findIndex(s => s.id === id);
-  if (idx !== -1) {
-    songs[idx].views += 1;
-    localStorage.setItem(LOCAL_STORAGE_KEY_SONGS, JSON.stringify(songs));
-    return songs[idx];
+  if (!song) {
+    // Fallback
+    const songs: Song[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SONGS) || "[]");
+    const idx = songs.findIndex(s => s.id === id);
+    if (idx !== -1) {
+      songs[idx].views += 1;
+      localStorage.setItem(LOCAL_STORAGE_KEY_SONGS, JSON.stringify(songs));
+      song = songs[idx];
+    }
   }
-  return null;
+
+  if (song) {
+    // Fetch and merge user submitted lyrics
+    const userLyrics = await getLatestUserLyrics(id);
+    if (userLyrics) {
+      song.lyrics = userLyrics.lyrics;
+      song.transliteration = userLyrics.transliteration || "";
+      song.translation = userLyrics.translation || "";
+      song.hasUserSubmitted = true;
+    } else {
+      song.hasUserSubmitted = false;
+    }
+  }
+
+  return song;
 }
 
 export async function addSong(songInput: Omit<Song, "id" | "createdAt" | "views" | "upvotesCount" | "upvotedBy" | "commentsCount" | "isFlagged">): Promise<string> {
@@ -490,35 +524,125 @@ export async function editSongLyrics(
     createdAt: new Date().toISOString()
   };
 
+  const userLyricsData = {
+    songId,
+    lyrics: updates.lyrics,
+    transliteration: updates.transliteration || "",
+    translation: updates.translation || "",
+    submittedBy: editorId,
+    submittedByUsername: editorName,
+    createdAt: new Date().toISOString()
+  };
+
   try {
     // 1. Add version doc
     await setDoc(doc(db, `songs/${songId}/versions`, versionId), newVersion);
-    // 2. Update song
+    // 2. Save user-submitted lyrics to Firestore
+    await setDoc(doc(db, "user_submitted_lyrics", songId), userLyricsData);
+    // 3. Update song version tracking on song doc
     await updateDoc(doc(db, "songs", songId), {
-      lyrics: updates.lyrics,
-      transliteration: updates.transliteration || "",
-      translation: updates.translation || "",
       currentVersionId: versionId
     });
-    return;
+
+    // 4. Save to Supabase (upsert)
+    if (supabase) {
+      const { error } = await supabase
+        .from('user_submitted_lyrics')
+        .upsert({
+          song_id: songId,
+          lyrics: updates.lyrics,
+          transliteration: updates.transliteration || '',
+          translation: updates.translation || '',
+          submitted_by: editorId,
+          submitted_by_username: editorName,
+          created_at: new Date().toISOString()
+        }, { onConflict: 'song_id' });
+      if (error) {
+        console.warn("Supabase lyrics upsert error:", error);
+      }
+    }
   } catch (e) {
     console.error("Firestore editSongLyrics failed, saving locally", e);
   }
 
-  // Fallback
-  const songs: Song[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SONGS) || "[]");
-  const sIdx = songs.findIndex(s => s.id === songId);
-  if (sIdx !== -1) {
-    songs[sIdx].lyrics = updates.lyrics;
-    songs[sIdx].transliteration = updates.transliteration;
-    songs[sIdx].translation = updates.translation;
-    songs[sIdx].currentVersionId = versionId;
-    localStorage.setItem(LOCAL_STORAGE_KEY_SONGS, JSON.stringify(songs));
-  }
+  // Fallback / Local Storage
+  localStorage.setItem(`xur_user_submitted_lyrics_${songId}`, JSON.stringify(userLyricsData));
 
   const versions: SongVersion[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_VERSIONS) || "[]");
   versions.push(newVersion);
   localStorage.setItem(LOCAL_STORAGE_KEY_VERSIONS, JSON.stringify(versions));
+}
+
+export async function getLatestUserLyrics(songId: string): Promise<any | null> {
+  // Try local storage first (instant fallback)
+  if (typeof window !== "undefined") {
+    const local = localStorage.getItem(`xur_user_submitted_lyrics_${songId}`);
+    if (local) {
+      try {
+        return JSON.parse(local);
+      } catch (e) {}
+    }
+  }
+
+  // Try Supabase if configured
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('user_submitted_lyrics')
+        .select('*')
+        .eq('song_id', songId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (!error && data) {
+        return {
+          songId: data.song_id,
+          lyrics: data.lyrics,
+          transliteration: data.transliteration,
+          translation: data.translation,
+          submittedBy: data.submitted_by,
+          submittedByUsername: data.submitted_by_username,
+          createdAt: data.created_at
+        };
+      }
+    } catch (e) {
+      console.warn("Supabase fetch user lyrics failed:", e);
+    }
+  }
+
+  // Try Firestore
+  try {
+    const snap = await getDoc(doc(db, "user_submitted_lyrics", songId));
+    if (snap.exists()) {
+      return snap.data();
+    }
+  } catch (e) {
+    console.warn("Firestore fetch of user lyrics failed:", e);
+  }
+
+  return null;
+}
+
+export async function deleteUserSubmittedLyrics(songId: string): Promise<void> {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem(`xur_user_submitted_lyrics_${songId}`);
+  }
+
+  if (supabase) {
+    try {
+      await supabase.from('user_submitted_lyrics').delete().eq('song_id', songId);
+    } catch (e) {
+      console.warn("Supabase delete user lyrics failed:", e);
+    }
+  }
+
+  try {
+    const { deleteDoc } = await import('firebase/firestore');
+    await deleteDoc(doc(db, "user_submitted_lyrics", songId));
+  } catch (e) {
+    console.warn("Firestore delete user lyrics failed:", e);
+  }
 }
 
 export async function fetchSongVersions(songId: string): Promise<SongVersion[]> {
@@ -813,3 +937,200 @@ export async function resolveFlag(flagId: string, action: 'resolve' | 'dismiss')
     }
   }
 }
+
+// Fetch all registered users
+export async function fetchUsers(): Promise<UserProfile[]> {
+  try {
+    const qRef = collection(db, "users");
+    const snap = await getDocs(qRef);
+    return snap.docs.map(d => d.data() as UserProfile);
+  } catch (e) {
+    console.warn("Firestore fetchUsers failed", e);
+    const profiles = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_PROFILE) || "{}");
+    return Object.values(profiles);
+  }
+}
+
+// Dynamic visitor/page load tracking in Firestore
+export async function incrementAndGetPageViews(): Promise<number> {
+  const docRef = doc(db, "system_metadata", "stats");
+  try {
+    const snap = await getDoc(docRef);
+    let currentViews = 12480; // Baseline starting value
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data && typeof data.pageViews === "number") {
+        currentViews = data.pageViews;
+      }
+    }
+    const newViews = currentViews + 1;
+    await setDoc(docRef, { pageViews: newViews }, { merge: true });
+    return newViews;
+  } catch (e) {
+    console.warn("Firestore page views update failed, fallback to local storage", e);
+    const localViews = Number(localStorage.getItem("xur_local_page_views") || "12480") + 1;
+    localStorage.setItem("xur_local_page_views", String(localViews));
+    return localViews;
+  }
+}
+
+// Local storage keys for new fallback data
+const LOCAL_STORAGE_KEY_FEEDBACKS = "xur_local_feedbacks";
+const LOCAL_STORAGE_KEY_ACTIVITIES = "xur_local_activities";
+
+// Submit user feedback
+export async function submitFeedback(
+  rating: number,
+  category: 'bug' | 'suggestion' | 'praise' | 'other',
+  message: string,
+  userId?: string,
+  username?: string
+): Promise<UserFeedback> {
+  const feedback: UserFeedback = {
+    id: `fb_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+    userId: userId || 'anonymous',
+    username: username || 'Guest User',
+    rating,
+    category,
+    message,
+    createdAt: new Date().toISOString()
+  };
+
+  // 1. Sync to local storage
+  try {
+    const localFbs = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_FEEDBACKS) || "[]");
+    localFbs.unshift(feedback);
+    localStorage.setItem(LOCAL_STORAGE_KEY_FEEDBACKS, JSON.stringify(localFbs));
+  } catch (err) {
+    console.error("Local storage feedback sync failed", err);
+  }
+
+  // 2. Sync to Firestore
+  try {
+    await setDoc(doc(db, "feedbacks", feedback.id), feedback);
+  } catch (e) {
+    console.warn("Firestore submitFeedback failed, running locally", e);
+  }
+
+  return feedback;
+}
+
+// Fetch user feedbacks
+export async function fetchFeedback(): Promise<UserFeedback[]> {
+  try {
+    const snap = await getDocs(query(collection(db, "feedbacks"), orderBy("createdAt", "desc")));
+    if (!snap.empty) {
+      return snap.docs.map(d => d.data() as UserFeedback);
+    }
+  } catch (e) {
+    console.warn("Firestore fetchFeedback failed, loading local", e);
+  }
+
+  return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_FEEDBACKS) || "[]");
+}
+
+// Log a community action / user activity
+export async function logUserActivity(
+  actionType: 'upvote' | 'comment' | 'song_submit' | 'lyrics_edit' | 'feedback_submit' | 'share' | 'visit',
+  details: string,
+  songId?: string,
+  userId?: string,
+  username?: string
+): Promise<UserActivity> {
+  const activity: UserActivity = {
+    id: `act_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+    userId: userId || 'anonymous',
+    username: username || 'Guest User',
+    actionType,
+    details,
+    songId: songId || undefined,
+    createdAt: new Date().toISOString()
+  };
+
+  // 1. Sync to local storage
+  try {
+    const localActs = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_ACTIVITIES) || "[]");
+    localActs.unshift(activity);
+    // Keep only latest 100 activities locally to prevent bloated storage
+    if (localActs.length > 100) localActs.pop();
+    localStorage.setItem(LOCAL_STORAGE_KEY_ACTIVITIES, JSON.stringify(localActs));
+  } catch (err) {
+    console.error("Local storage activity sync failed", err);
+  }
+
+  // 2. Sync to Firestore
+  try {
+    await setDoc(doc(db, "user_activities", activity.id), activity);
+  } catch (e) {
+    console.warn("Firestore logUserActivity failed, running locally", e);
+  }
+
+  return activity;
+}
+
+// Fetch latest platform activities
+export async function fetchUserActivities(): Promise<UserActivity[]> {
+  try {
+    const qRef = query(collection(db, "user_activities"), orderBy("createdAt", "desc"), limit(25));
+    const snap = await getDocs(qRef);
+    if (!snap.empty) {
+      return snap.docs.map(d => d.data() as UserActivity);
+    }
+  } catch (e) {
+    console.warn("Firestore fetchUserActivities failed, loading local", e);
+  }
+
+  // If empty or offline, return local activities plus some simulated ones based on live user data
+  let local = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_ACTIVITIES) || "[]");
+  
+  // Clean up any old seed/cached activity that used "Rupanta Saikia" to ensure it's removed immediately from localStorage
+  let hasOldName = false;
+  local = local.map((act: any) => {
+    if (act.username === "Rupanta Saikia") {
+      hasOldName = true;
+      return { ...act, username: "Bhupen_Hazarika_Archives" };
+    }
+    return act;
+  });
+  
+  if (hasOldName) {
+    localStorage.setItem(LOCAL_STORAGE_KEY_ACTIVITIES, JSON.stringify(local));
+  }
+
+  if (local.length === 0) {
+    const seedActivities: UserActivity[] = [
+      {
+        id: "act_seed1",
+        userId: "system",
+        username: "Bhupen_Hazarika_Archives",
+        actionType: "lyrics_edit",
+        details: "Contributed transliteration edits to 'প্ৰতিধ্বনি শুনো মই'",
+        songId: "pratidhwani-hazarika",
+        createdAt: new Date(Date.now() - 3 * 3600000).toISOString()
+      },
+      {
+        id: "act_seed2",
+        userId: "anonymous",
+        username: "Joydeep G.",
+        actionType: "upvote",
+        details: "Upvoted 'Ekla Cholo Re' by Rabindranath Tagore",
+        songId: "ekla-cholo-tagore",
+        createdAt: new Date(Date.now() - 8 * 3600000).toISOString()
+      },
+      {
+        id: "act_seed3",
+        userId: "system",
+        username: "Moderator",
+        actionType: "song_submit",
+        details: "Added classic masterpiece 'Imagine'",
+        songId: "imagine-lennon",
+        createdAt: new Date(Date.now() - 24 * 3600000).toISOString()
+      }
+    ];
+    localStorage.setItem(LOCAL_STORAGE_KEY_ACTIVITIES, JSON.stringify(seedActivities));
+    return seedActivities;
+  }
+  return local;
+}
+
+

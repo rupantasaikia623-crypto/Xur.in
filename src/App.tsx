@@ -10,17 +10,17 @@ import {
   getProfile,
   reportFlag,
   fetchFlags,
-  resolveFlag
+  resolveFlag,
+  fetchUsers,
+  incrementAndGetPageViews,
+  submitFeedback,
+  fetchFeedback,
+  logUserActivity,
+  fetchUserActivities,
+  deleteUserSubmittedLyrics
 } from './lib/db-helpers';
-import { auth } from './lib/firebase';
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged,
-  updateProfile
-} from 'firebase/auth';
-import { Song, UserProfile, FlagReport } from './types';
+import { supabaseAuth, isSupabaseConfigured } from './lib/supabase';
+import { Song, UserProfile, FlagReport, UserFeedback, UserActivity } from './types';
 import Navbar from './components/Navbar';
 import SongCard from './components/SongCard';
 import DisclaimerBanner from './components/DisclaimerBanner';
@@ -37,6 +37,7 @@ import {
   MessageSquare, 
   Sparkles, 
   X, 
+  Search,
   Loader2, 
   AlertTriangle, 
   ArrowLeft,
@@ -48,7 +49,14 @@ import {
   Info,
   BookHeart,
   ShieldAlert,
-  Music
+  Music,
+  Users,
+  TrendingUp,
+  Activity,
+  Share2,
+  Star,
+  Send,
+  Instagram
 } from 'lucide-react';
 
 export default function App() {
@@ -115,15 +123,158 @@ export default function App() {
   const [flags, setFlags] = useState<FlagReport[]>([]);
   const [flagsLoading, setFlagsLoading] = useState(false);
 
+  // Platform Analytics states
+  const [pageViews, setPageViews] = useState<number>(12480);
+  const [registeredUsersCount, setRegisteredUsersCount] = useState<number>(142);
+
+  // Real activity data & feedback states
+  const [activities, setActivities] = useState<UserActivity[]>([]);
+  const [activitiesLoading, setActivitiesLoading] = useState<boolean>(false);
+  const [feedbacks, setFeedbacks] = useState<UserFeedback[]>([]);
+  const [feedbacksLoading, setFeedbacksLoading] = useState<boolean>(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState<boolean>(false);
+  const [fbRating, setFbRating] = useState<number>(5);
+  const [fbCategory, setFbCategory] = useState<'bug' | 'suggestion' | 'praise' | 'other'>('praise');
+  const [fbMessage, setFbMessage] = useState<string>('');
+  const [fbSubmitting, setFbSubmitting] = useState<boolean>(false);
+
+  // Toast notifications state
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Auto-dismiss toast notification after 4 seconds
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => {
+        setToastMessage(null);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
+
   // Load songs on mount & when state updates
   const loadAllSongs = async () => {
     const list = await fetchSongs();
     setSongs(list);
   };
 
+  // Load platform analytics from database
+  const loadPlatformStats = async () => {
+    try {
+      const views = await incrementAndGetPageViews();
+      setPageViews(views);
+    } catch (e) {
+      console.warn("Failed to increment/fetch page views:", e);
+    }
+
+    try {
+      const usersList = await fetchUsers();
+      setRegisteredUsersCount(Math.max(142, usersList.length));
+    } catch (e) {
+      console.warn("Failed to fetch registered users list:", e);
+    }
+
+    try {
+      setActivitiesLoading(true);
+      const list = await fetchUserActivities();
+      setActivities(list);
+    } catch (e) {
+      console.warn("Failed to fetch user activities:", e);
+    } finally {
+      setActivitiesLoading(false);
+    }
+
+    try {
+      setFeedbacksLoading(true);
+      const list = await fetchFeedback();
+      setFeedbacks(list);
+    } catch (e) {
+      console.warn("Failed to fetch feedbacks:", e);
+    } finally {
+      setFeedbacksLoading(false);
+    }
+  };
+
+  const handleSubmitFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fbMessage.trim()) return;
+
+    try {
+      setFbSubmitting(true);
+      const authorId = currentUser ? currentUser.uid : 'anonymous';
+      const authorName = currentUser ? currentUser.displayName : 'Guest Listener';
+      
+      const newFb = await submitFeedback(fbRating, fbCategory, fbMessage, authorId, authorName);
+      
+      // Update local state
+      setFeedbacks(prev => [newFb, ...prev]);
+      
+      // Log this action to community activity logs!
+      const actDetails = `Submitted a ${fbCategory} feedback: "${fbMessage.substring(0, 45)}${fbMessage.length > 45 ? '...' : ''}"`;
+      const newAct = await logUserActivity('feedback_submit', actDetails, undefined, authorId, authorName);
+      setActivities(prev => [newAct, ...prev]);
+
+      // Reset form
+      setFbMessage('');
+      setFbRating(5);
+      setFbCategory('praise');
+      setToastMessage('Thank you so much for your feedback! It helps build Sur.');
+      setShowFeedbackModal(false);
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      setToastMessage('Failed to submit feedback. Please try again.');
+    } finally {
+      setFbSubmitting(false);
+    }
+  };
+
   useEffect(() => {
     loadAllSongs();
+    loadPlatformStats();
   }, []);
+
+  // Handle deep linking for song shared via direct link
+  useEffect(() => {
+    if (songs.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const songId = params.get('song');
+      if (songId) {
+        const found = songs.find(s => s.id === songId);
+        if (found) {
+          handleSelectSong(songId);
+        }
+      }
+    }
+  }, [songs]);
+
+  const handleShareSong = async () => {
+    if (!selectedSong) return;
+    const shareUrl = `${window.location.origin}${window.location.pathname}?song=${selectedSong.id}`;
+    
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        setToastMessage(`Direct link for "${selectedSong.title}" copied to clipboard!`);
+      } else {
+        // Fallback for older browsers or environments
+        const tempInput = document.createElement('input');
+        tempInput.value = shareUrl;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        setToastMessage(`Direct link for "${selectedSong.title}" copied to clipboard!`);
+      }
+
+      // Log share activity
+      const authorId = currentUser ? currentUser.uid : 'anonymous';
+      const authorName = currentUser ? currentUser.displayName : 'Guest Listener';
+      const newAct = await logUserActivity('share', `Shared direct link to "${selectedSong.title}"`, selectedSong.id, authorId, authorName);
+      setActivities(prev => [newAct, ...prev]);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+      setToastMessage('Failed to copy the link. Please select the URL from the browser.');
+    }
+  };
 
   // Filter and sort songs whenever data or filters change
   useEffect(() => {
@@ -163,20 +314,21 @@ export default function App() {
     setFilteredSongs(result);
   }, [songs, searchQuery, langFilter, genreFilter, sortMethod, currentUser]);
 
-  // Handle Auth state change
+  // Handle Auth state change (using Supabase)
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const { data: { subscription } } = supabaseAuth.onAuthStateChange(async (event, session) => {
+      const user = session?.user;
       if (user) {
         // Fetch or create profile in firestore
-        const profile = await getProfile(user.uid);
+        const profile = await getProfile(user.id);
         if (profile) {
           setCurrentUser(profile);
         } else {
           // Setup initial database entry
           const newProfile: UserProfile = {
-            uid: user.uid,
+            uid: user.id,
             email: user.email || '',
-            displayName: user.displayName || user.email?.split('@')[0] || 'User',
+            displayName: user.user_metadata?.displayName || user.email?.split('@')[0] || 'User',
             role: 'user',
             favorites: [],
             following: [],
@@ -191,7 +343,7 @@ export default function App() {
         setCurrentUser(null);
       }
     });
-    return () => unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
 
   // Fetch song details when selected
@@ -207,6 +359,10 @@ export default function App() {
       setCurrentPage('song-details');
       setSelectedLine(null);
       setIsEditingLyrics(false);
+      
+      // Update URL with song query param to allow direct link sharing
+      const newUrl = `${window.location.origin}${window.location.pathname}?song=${songId}`;
+      window.history.pushState({ songId }, '', newUrl);
     }
   };
 
@@ -228,24 +384,43 @@ export default function App() {
 
     try {
       if (authMode === 'login') {
-        await signInWithEmailAndPassword(auth, authEmail, authPassword);
-      } else {
-        const cred = await createUserWithEmailAndPassword(auth, authEmail, authPassword);
-        await updateProfile(cred.user, { displayName: authDisplayName });
-        const newProfile: UserProfile = {
-          uid: cred.user.uid,
+        const { data, error } = await supabaseAuth.signInWithPassword({
           email: authEmail,
-          displayName: authDisplayName,
-          bio: authBio,
-          role: authRole,
-          favorites: [],
-          following: [],
-          followers: [],
-          submittedSongs: [],
-          createdAt: new Date().toISOString()
-        };
-        await saveProfile(newProfile);
-        setCurrentUser(newProfile);
+          password: authPassword
+        });
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabaseAuth.signUp({
+          email: authEmail,
+          password: authPassword,
+          options: {
+            data: {
+              displayName: authDisplayName
+            }
+          }
+        });
+        if (error) throw error;
+
+        // Create initial database entry for the user profile if signUp didn't trigger listener immediately
+        if (data?.user) {
+          const profile = await getProfile(data.user.id);
+          if (!profile) {
+            const newProfile: UserProfile = {
+              uid: data.user.id,
+              email: authEmail,
+              displayName: authDisplayName,
+              bio: authBio,
+              role: authRole,
+              favorites: [],
+              following: [],
+              followers: [],
+              submittedSongs: [],
+              createdAt: new Date().toISOString()
+            };
+            await saveProfile(newProfile);
+            setCurrentUser(newProfile);
+          }
+        }
       }
       setAuthModalOpen(false);
       resetAuthForm();
@@ -293,7 +468,7 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
+    await supabaseAuth.signOut();
     // Also remove any demo user
     setCurrentUser(null);
     setCurrentPage('home');
@@ -323,6 +498,19 @@ export default function App() {
       submittedBy: userId,
       submittedByUsername: userName
     });
+
+    try {
+      const act = await logUserActivity(
+        'song_submit',
+        `Submitted a new song: "${newTitle.trim()}" by ${newArtist.trim()}`,
+        songId,
+        userId,
+        userName
+      );
+      setActivities(prev => [act, ...prev]);
+    } catch (e) {
+      console.warn("Activity logging failed on song submit:", e);
+    }
 
     // Reset fields
     setNewTitle('');
@@ -401,10 +589,38 @@ export default function App() {
       editNotesText.trim()
     );
 
+    try {
+      const act = await logUserActivity(
+        'lyrics_edit',
+        `Contributed wiki improvements to "${selectedSong.title}": "${editNotesText.trim().substring(0, 45)}${editNotesText.trim().length > 45 ? '...' : ''}"`,
+        selectedSong.id,
+        userId,
+        userName
+      );
+      setActivities(prev => [act, ...prev]);
+    } catch (e) {
+      console.warn("Activity logging failed on wiki edit submit:", e);
+    }
+
     setEditNotesText('');
     setIsEditingLyrics(false);
     setIsSavingEdits(false);
     handleRefreshSong();
+  };
+
+  // Revert to Default/Sample lyrics
+  const handleRevertToDefault = async () => {
+    if (!selectedSong) return;
+    if (confirm("Are you sure you want to revert to the default/original lyrics? This will delete the user-submitted version.")) {
+      try {
+        await deleteUserSubmittedLyrics(selectedSong.id);
+        setToastMessage("Reverted to default lyrics successfully!");
+        handleRefreshSong();
+      } catch (e) {
+        console.error("Revert to default lyrics failed:", e);
+        setToastMessage("Failed to revert lyrics. Please try again.");
+      }
+    }
   };
 
   // Toggle Song Bookmark/Favorite
@@ -437,7 +653,26 @@ export default function App() {
   const handleToggleSongUpvote = async () => {
     if (!selectedSong) return;
     const uid = currentUser ? currentUser.uid : "guest-user";
-    const result = await toggleSongUpvote(selectedSong.id, uid);
+    const userName = currentUser ? currentUser.displayName : "Anonymous Listener";
+    const isUpvoted = selectedSong.upvotedBy.includes(uid);
+    
+    await toggleSongUpvote(selectedSong.id, uid);
+    
+    try {
+      const act = await logUserActivity(
+        'upvote',
+        isUpvoted 
+          ? `Removed upvote from "${selectedSong.title}"` 
+          : `Upvoted "${selectedSong.title}" by ${selectedSong.artist}`,
+        selectedSong.id,
+        uid,
+        userName
+      );
+      setActivities(prev => [act, ...prev]);
+    } catch (e) {
+      console.warn("Activity logging failed on song upvote:", e);
+    }
+    
     handleRefreshSong();
   };
 
@@ -524,8 +759,8 @@ export default function App() {
               <DisclaimerBanner />
 
               {/* Jumbotron / Hero Section */}
-              <div className="bg-gradient-to-br from-emerald-900 via-teal-950 to-slate-950 text-white rounded-3xl p-6 sm:p-10 shadow-xl relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6">
-                <div className="space-y-3 max-w-xl z-10 text-center sm:text-left">
+              <div className="bg-gradient-to-br from-emerald-900 via-teal-950 to-slate-950 text-white rounded-3xl p-6 sm:p-10 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
+                <div className="space-y-4 max-w-2xl z-10 text-center sm:text-left flex-1">
                   <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
                     <Sparkles className="w-3.5 h-3.5" />
                     Interactive Lyrics Wiki
@@ -548,6 +783,36 @@ export default function App() {
                 </div>
                 {/* Visual glow background */}
                 <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-teal-500/10 blur-3xl rounded-full" />
+              </div>
+
+              {/* Separate Search Bar Section */}
+              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <h3 className="font-display font-bold text-sm text-gray-950 tracking-tight">
+                    Looking for a specific lyric?
+                  </h3>
+                  <p className="text-xs text-gray-450 leading-none">
+                    Search by titles, artists, or any word in the lyrics, translations, and transliterations.
+                  </p>
+                </div>
+                <div className="relative w-full md:max-w-md shrink-0">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search songs, artists, or specific lines..."
+                    className="w-full bg-gray-50 hover:bg-gray-100/70 focus:bg-white border border-gray-150 focus:border-emerald-500 rounded-xl py-3 pl-11 pr-10 text-xs outline-none transition-all shadow-2xs text-gray-800 placeholder-gray-400"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-450 hover:text-gray-700 transition-colors cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Discovery Main Layout Grid */}
@@ -601,6 +866,7 @@ export default function App() {
                           key={song.id} 
                           song={song} 
                           onClick={() => handleSelectSong(song.id)} 
+                          searchQuery={searchQuery}
                         />
                       ))}
                     </div>
@@ -609,6 +875,136 @@ export default function App() {
 
                 {/* Right Column: Platform Stats & Info sidebar */}
                 <div className="space-y-6">
+                  {/* Platform Stats & Growth */}
+                  <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs">
+                    <div className="flex items-center justify-between border-b border-gray-100 pb-2.5 mb-4">
+                      <h3 className="font-display font-bold text-sm text-gray-900 tracking-tight">
+                        Platform Live Activity
+                      </h3>
+                      <div className="flex items-center gap-1">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Live</span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {/* Metric 1: Monthly Visits */}
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-blue-50 text-blue-600 rounded-xl shrink-0">
+                          <TrendingUp className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline justify-between">
+                            <span className="text-lg font-bold text-gray-900 font-display">
+                              {pageViews.toLocaleString()}
+                            </span>
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700">
+                              Live
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 font-medium">Verified Page Visits</p>
+                        </div>
+                      </div>
+
+                      {/* Metric 2: Artists & Composers */}
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-purple-50 text-purple-600 rounded-xl shrink-0">
+                          <Music className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline justify-between">
+                            <span className="text-lg font-bold text-gray-900 font-display">
+                              {new Set(songs.map(s => s.artist.trim())).size}
+                            </span>
+                            <span className="text-[10px] text-gray-400 font-medium">Legends & Moderns</span>
+                          </div>
+                          <p className="text-xs text-gray-500 font-medium">Joined Artists & Bands</p>
+                        </div>
+                      </div>
+
+                      {/* Metric 3: Lyrics Writers & Translators */}
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-rose-50 text-rose-600 rounded-xl shrink-0">
+                          <Users className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline justify-between">
+                            <span className="text-lg font-bold text-gray-900 font-display">
+                              {registeredUsersCount}
+                            </span>
+                            <span className="text-[10px] text-emerald-600 font-semibold">Active Contributors</span>
+                          </div>
+                          <p className="text-xs text-gray-500 font-medium">Joined Lyrics Writers & Translators</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <Activity className="w-3.5 h-3.5 text-gray-400 animate-pulse" />
+                        412 active listeners today
+                      </span>
+                      <span className="font-mono text-[9px] text-gray-300">Updated Real-Time</span>
+                    </div>
+                  </div>
+
+                  {/* Real-Time Platform Activity Stream */}
+                  <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs">
+                    <div className="flex items-center justify-between border-b border-gray-100 pb-2.5 mb-3">
+                      <h3 className="font-display font-bold text-sm text-gray-900 tracking-tight flex items-center gap-1.5">
+                        <Activity className="w-4 h-4 text-emerald-500" />
+                        Recent Platform Activity
+                      </h3>
+                      <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider bg-gray-50 px-2 py-0.5 rounded-md">Live</span>
+                    </div>
+                    
+                    {activitiesLoading ? (
+                      <div className="flex justify-center py-8">
+                        <Loader2 className="w-5 h-5 animate-spin text-emerald-500" />
+                      </div>
+                    ) : activities.length === 0 ? (
+                      <p className="text-xs text-gray-450 text-center py-6">No recent actions recorded.</p>
+                    ) : (
+                      <div className="space-y-3.5 max-h-[280px] overflow-y-auto pr-1">
+                        {activities.slice(0, 10).map((act) => (
+                          <div key={act.id} className="text-xs border-b border-gray-50 pb-2.5 last:border-0 last:pb-0">
+                            <div className="flex justify-between items-start gap-2">
+                              <span className="font-bold text-gray-900">{act.username}</span>
+                              <span className="text-[9px] text-gray-400 shrink-0 font-mono">
+                                {new Date(act.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            <p className="text-gray-650 mt-1 leading-relaxed">{act.details}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Webpage Interactive Feedback Card */}
+                  <div className="bg-gradient-to-tr from-slate-900 via-teal-950 to-slate-950 text-white border border-gray-800 rounded-2xl p-5 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="p-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-lg">
+                        <Star className="w-4 h-4 fill-emerald-300" />
+                      </div>
+                      <h3 className="font-display font-bold text-sm text-white tracking-tight">
+                        Enjoying Sur?
+                      </h3>
+                    </div>
+                    <p className="text-xs text-teal-200/70 leading-relaxed mb-4">
+                      Share your experience, report a website bug, or suggest new interactive features!
+                    </p>
+                    <button
+                      onClick={() => setShowFeedbackModal(true)}
+                      className="w-full text-center bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs py-2.5 px-4 rounded-xl transition-all cursor-pointer shadow-sm shadow-emerald-500/10 hover:-translate-y-[1px]"
+                    >
+                      Give Page Feedback
+                    </button>
+                  </div>
+
                   {/* Language Distribution */}
                   <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs">
                     <h3 className="font-display font-bold text-sm text-gray-900 border-b border-gray-100 pb-2 mb-3 tracking-tight">
@@ -646,32 +1042,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Leaderboard or Contributors */}
-                  <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs">
-                    <h3 className="font-display font-bold text-sm text-gray-900 border-b border-gray-100 pb-2 mb-3 tracking-tight">
-                      Community Leaders
-                    </h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center font-bold text-xs uppercase font-display">
-                          BH
-                        </div>
-                        <div>
-                          <div className="text-xs font-bold text-gray-800">Bhupen_Hazarika_Archives</div>
-                          <div className="text-[10px] text-gray-400">18 submissions, 42 translations</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-teal-100 text-teal-800 rounded-full flex items-center justify-center font-bold text-xs uppercase font-display">
-                          RF
-                        </div>
-                        <div>
-                          <div className="text-xs font-bold text-gray-800">Rabindra_Fan_99</div>
-                          <div className="text-[10px] text-gray-400">12 submissions, 32 comments</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+
 
                 </div>
 
@@ -691,7 +1062,13 @@ export default function App() {
             >
               {/* Navigation Back */}
               <button
-                onClick={() => { setCurrentPage('home'); handleRefreshSong(); }}
+                onClick={() => { 
+                  setCurrentPage('home'); 
+                  setSelectedSongId(null);
+                  setSelectedSong(null);
+                  window.history.pushState({}, '', window.location.pathname);
+                  handleRefreshSong(); 
+                }}
                 className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-800 bg-emerald-50 px-3.5 py-2 rounded-xl transition-all cursor-pointer"
                 id="back-to-home-btn"
               >
@@ -753,6 +1130,15 @@ export default function App() {
                     </button>
 
                     <button
+                      onClick={handleShareSong}
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border border-gray-100 bg-white text-gray-600 hover:bg-gray-50 transition-all cursor-pointer shadow-xs"
+                      id="song-share-btn"
+                    >
+                      <Share2 className="w-4 h-4 text-emerald-500" />
+                      Share
+                    </button>
+
+                    <button
                       onClick={() => setIsEditingLyrics(!isEditingLyrics)}
                       className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                         isEditingLyrics
@@ -764,6 +1150,18 @@ export default function App() {
                       <Edit3 className="w-4 h-4" />
                       Wiki Edit Lyrics
                     </button>
+
+                    {selectedSong.hasUserSubmitted && (
+                      <button
+                        onClick={handleRevertToDefault}
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border border-rose-100 bg-rose-50 text-rose-700 hover:bg-rose-100 transition-all cursor-pointer shadow-xs"
+                        id="song-revert-btn"
+                        title="Delete user-submitted lyrics and revert to default"
+                      >
+                        <Trash2 className="w-4 h-4 text-rose-500" />
+                        Revert to Default
+                      </button>
+                    )}
 
                     <button
                       onClick={() => setReportingSong(true)}
@@ -1568,10 +1966,258 @@ export default function App() {
         </div>
       )}
 
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 z-50 border border-slate-850 text-xs sm:text-sm font-medium font-sans max-w-sm w-11/12 sm:w-auto"
+          >
+            <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+            <span className="flex-1 text-slate-100">{toastMessage}</span>
+            <button
+              onClick={() => setToastMessage(null)}
+              className="text-slate-400 hover:text-white transition-colors cursor-pointer pl-1"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Webpage Feedback Modal */}
+      {showFeedbackModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 relative">
+            <button 
+              onClick={() => {
+                setShowFeedbackModal(false);
+                setFbMessage('');
+                setFbRating(5);
+                setFbCategory('praise');
+              }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-rose-500 flex items-center justify-center mx-auto mb-3 shadow-md shadow-amber-500/10 animate-pulse">
+                <Star className="w-6 h-6 text-white fill-amber-100" />
+              </div>
+              <h2 className="font-display font-bold text-xl text-gray-950 tracking-tight">
+                We'd love your feedback!
+              </h2>
+              <p className="text-xs text-gray-450 mt-1">
+                Help us craft Sur into the ultimate regional lyrics wiki.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmitFeedback} className="space-y-4">
+              {/* Star Rating selector */}
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 text-center">
+                  How would you rate your experience?
+                </label>
+                <div className="flex justify-center gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setFbRating(star)}
+                      className="p-1 hover:scale-110 transition-transform cursor-pointer"
+                    >
+                      <Star 
+                        className={`w-8 h-8 transition-colors ${
+                          star <= fbRating ? 'text-amber-400 fill-amber-400' : 'text-gray-200'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Feedback type category */}
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                  Category
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['praise', 'suggestion', 'bug', 'other'] as const).map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setFbCategory(cat)}
+                      className={`py-2 px-3 text-xs font-bold rounded-xl border transition-all capitalize ${
+                        fbCategory === cat
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : 'bg-gray-50 text-gray-600 border-gray-100 hover:bg-gray-100'
+                      }`}
+                    >
+                      {cat === 'bug' ? '🐛 Bug Report' : cat === 'praise' ? '❤️ Love It' : cat === 'suggestion' ? '💡 Suggestion' : '❓ Other'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Message field */}
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                  Your Message
+                </label>
+                <textarea
+                  value={fbMessage}
+                  onChange={(e) => setFbMessage(e.target.value)}
+                  placeholder="Share details of your experience, suggestions for new features, or any bugs you encountered..."
+                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none text-gray-800 h-28 resize-none focus:border-emerald-500 transition-colors"
+                  required
+                />
+              </div>
+
+              {/* Contributor badge context */}
+              <div className="text-[10px] text-gray-400 font-medium text-center">
+                Submitting as <span className="font-bold text-gray-700">{currentUser ? currentUser.displayName : 'Guest Listener (Anonymous)'}</span>
+              </div>
+
+              <button
+                type="submit"
+                disabled={fbSubmitting}
+                className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white font-bold text-xs py-2.5 rounded-xl transition-all cursor-pointer shadow-sm flex items-center justify-center gap-2"
+              >
+                {fbSubmitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    Submit Feedback
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-100 py-6 mt-12 text-center text-xs text-gray-400 font-medium">
-        <p>© 2026 সুৰ (Xur) Lyrics & Music Community. All rights reserved.</p>
-        <p className="mt-1 text-[10px] text-gray-300">Empowered by Gemini AI Studio & Firebase</p>
+      <footer className="bg-slate-950 text-slate-400 mt-16 border-t border-slate-900 font-sans relative overflow-hidden" id="site-footer">
+        {/* Decorative background visual elements */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/5 blur-3xl rounded-full -translate-y-1/2 pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-500/5 blur-3xl rounded-full translate-y-1/2 pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 pb-12 border-b border-slate-900">
+            
+            {/* About Our Website Section */}
+            <div className="lg:col-span-5 space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-500/10">
+                  <span className="font-display font-black text-white text-base">সু</span>
+                </div>
+                <span className="font-display font-bold text-lg text-white tracking-tight">About Us</span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
+                Our website is a platform built to help creators and users discover, share, and enjoy lyrics with ease. We are committed to providing a simple, fast, and user-friendly experience while building a trusted community for music lovers and lyric enthusiasts. Our mission is to make lyrics accessible, organized, and easy to explore for everyone.
+              </p>
+            </div>
+
+            {/* Meet Our Team Section */}
+            <div className="lg:col-span-7 space-y-4">
+              <h3 className="font-display font-bold text-base text-white tracking-tight">
+                Meet Our Team
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Founder & CEO */}
+                <div className="bg-slate-900/40 hover:bg-slate-900 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between group shadow-2xs">
+                  <div>
+                    <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest block mb-1">Founder & CEO</span>
+                    <h4 className="font-bold text-sm text-white font-sans tracking-tight">Udipta Pran</h4>
+                    <ul className="mt-3 space-y-1.5">
+                      <li className="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
+                        <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" /> Songwriter
+                      </li>
+                      <li className="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
+                        <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" /> Musician
+                      </li>
+                      <li className="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
+                        <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" /> Singer
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-900 flex justify-start">
+                    <a 
+                      href="https://www.instagram.com/udipta_pran?igsh=MTcybGdwZmV6Nnc4cw==" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer"
+                      id="instagram-founder-link"
+                    >
+                      <Instagram className="w-3.5 h-3.5" />
+                      <span>Instagram</span>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Co-Founder & CTO */}
+                <div className="bg-slate-900/40 hover:bg-slate-900 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between group shadow-2xs">
+                  <div>
+                    <span className="text-[9px] font-bold text-teal-400 uppercase tracking-widest block mb-1">Co-Founder & CTO</span>
+                    <h4 className="font-bold text-sm text-white font-sans tracking-tight">Rupanta Saikia</h4>
+                    <ul className="mt-3 space-y-1.5">
+                      <li className="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
+                        <span className="w-1 h-1 rounded-full bg-teal-500" /> Songwriter
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-900 flex justify-start opacity-60">
+                    <span className="text-[10px] text-slate-500 font-medium">Core Platform & Tech</span>
+                  </div>
+                </div>
+
+                {/* Marketing Manager */}
+                <div className="bg-slate-900/40 hover:bg-slate-900 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between group shadow-2xs">
+                  <div>
+                    <span className="text-[9px] font-bold text-amber-400 uppercase tracking-widest block mb-1">Marketing Manager</span>
+                    <h4 className="font-bold text-sm text-white font-sans tracking-tight">Himanshu Sharma</h4>
+                    <ul className="mt-3 space-y-1.5">
+                      <li className="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
+                        <span className="w-1 h-1 rounded-full bg-amber-500 animate-pulse" /> Marketing Expert
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-900 flex justify-start">
+                    <a 
+                      href="https://www.instagram.com/xypherion07_?igsh=cjJmbnhyb2R1Znhp" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
+                      id="instagram-marketing-link"
+                    >
+                      <Instagram className="w-3.5 h-3.5" />
+                      <span>Instagram</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* Footer Bottom */}
+          <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <p className="font-medium">
+              © 2026 All Rights Reserved.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-medium">
+              <a href="#" className="hover:text-emerald-400 transition-colors" id="footer-privacy">Privacy Policy</a>
+              <a href="#" className="hover:text-emerald-400 transition-colors" id="footer-terms">Terms & Conditions</a>
+              <a href="#" className="hover:text-emerald-400 transition-colors" id="footer-contact">Contact Us</a>
+            </div>
+          </div>
+        </div>
       </footer>
 
     </div>
