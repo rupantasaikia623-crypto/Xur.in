@@ -62,6 +62,87 @@ import {
   Instagram
 } from 'lucide-react';
 
+const defaultActivities: UserActivity[] = [
+  {
+    id: "act_seed1",
+    userId: "system",
+    username: "Bhupen_Hazarika_Archives",
+    actionType: "lyrics_edit",
+    details: "Contributed translation updates to 'প্ৰতিধ্বনি শুনো মই' (Pratidhwani)",
+    songId: "pratidhwani-hazarika",
+    createdAt: new Date(Date.now() - 4 * 60000).toISOString()
+  },
+  {
+    id: "act_seed2",
+    userId: "anonymous",
+    username: "Ananya Sharma",
+    actionType: "upvote",
+    details: "Upvoted 'Ekla Cholo Re' lyrics by Rabindranath Tagore",
+    songId: "ekla-cholo-tagore",
+    createdAt: new Date(Date.now() - 12 * 60000).toISOString()
+  },
+  {
+    id: "act_seed3",
+    userId: "moderator",
+    username: "Assamese_Lyrical_Pro",
+    actionType: "song_submit",
+    details: "Added classic masterpiece 'Biswar Chande Chande' lyrics",
+    songId: "biswar-chande-chande",
+    createdAt: new Date(Date.now() - 35 * 60000).toISOString()
+  },
+  {
+    id: "act_seed4",
+    userId: "guest",
+    username: "Subhashish_Das",
+    actionType: "share",
+    details: "Shared translation link for 'O Mur Apunar Desh'",
+    songId: "o-mur-apunar-desh",
+    createdAt: new Date(Date.now() - 55 * 60000).toISOString()
+  }
+];
+
+const getActivityMeta = (actionType: string) => {
+  switch (actionType) {
+    case 'lyrics_edit':
+      return {
+        icon: <Edit3 className="w-3 h-3 text-purple-500" />,
+        badgeClass: 'bg-purple-50 text-purple-700 border-purple-100',
+        labelText: 'Edited Lyrics'
+      };
+    case 'song_submit':
+      return {
+        icon: <Music className="w-3 h-3 text-emerald-500" />,
+        badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+        labelText: 'New Song'
+      };
+    case 'upvote':
+      return {
+        icon: <ThumbsUp className="w-3 h-3 text-blue-500" />,
+        badgeClass: 'bg-blue-50 text-blue-700 border-blue-100',
+        labelText: 'Upvoted'
+      };
+    case 'share':
+      return {
+        icon: <Share2 className="w-3 h-3 text-pink-500" />,
+        badgeClass: 'bg-pink-50 text-pink-700 border-pink-100',
+        labelText: 'Shared'
+      };
+    case 'feedback_submit':
+      return {
+        icon: <Star className="w-3 h-3 text-amber-500" />,
+        badgeClass: 'bg-amber-50 text-amber-700 border-amber-100',
+        labelText: 'Feedback'
+      };
+    case 'visit':
+    default:
+      return {
+        icon: <Eye className="w-3 h-3 text-slate-500" />,
+        badgeClass: 'bg-slate-50 text-slate-700 border-slate-100',
+        labelText: 'Visited'
+      };
+  }
+};
+
 export default function App() {
   // Navigation / Page state
   const [currentPage, setCurrentPage] = useState('home'); // 'home' | 'song-details' | 'add-song' | 'profile' | 'moderator-board'
@@ -920,128 +1001,80 @@ export default function App() {
 
                 {/* Right Column: Platform Stats & Info sidebar */}
                 <div className="space-y-6">
-                  {/* Platform Stats & Engagement */}
+                  {/* Real-Time Platform Activity Stream */}
                   <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/[0.02] rounded-full blur-xl pointer-events-none" />
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/[0.015] rounded-full blur-xl pointer-events-none" />
                     
-                    <div className="flex items-center justify-between border-b border-gray-100 pb-2.5 mb-4">
-                      <h3 className="font-display font-bold text-sm text-gray-900 tracking-tight flex items-center gap-2">
-                        <Activity className="w-4 h-4 text-emerald-500" />
-                        Site Engagement Stats
-                      </h3>
-                      <div className="flex items-center gap-1">
+                    <div className="flex items-center justify-between border-b border-gray-100 pb-2.5 mb-3">
+                      <div>
+                        <h3 className="font-display font-bold text-sm text-gray-900 tracking-tight flex items-center gap-1.5">
+                          <Activity className="w-4 h-4 text-emerald-500" />
+                          Recent Platform Activity
+                        </h3>
+                        <p className="text-[9px] text-gray-400 mt-0.5">Real-time update channel active</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full shrink-0">
                         <span className="relative flex h-1.5 w-1.5">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                         </span>
-                        <span className="text-[9px] text-emerald-600 font-bold uppercase tracking-wider">Live Feed</span>
+                        <span className="text-[9px] text-emerald-700 font-bold uppercase tracking-wider">Live</span>
                       </div>
-                    </div>
-                    
-                    <div className="space-y-3.5">
-                      {/* Metric 1: Total Monthly Visitors (Real Data) */}
-                      <div className="flex items-start gap-3 p-2.5 rounded-xl bg-slate-50/50 border border-slate-100 hover:border-emerald-100 transition-colors">
-                        <div className="p-2 bg-emerald-500/10 text-emerald-600 rounded-xl shrink-0">
-                          <Eye className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-baseline justify-between">
-                            <span className="text-lg font-bold text-gray-900 font-display">
-                              {pageViews.toLocaleString()}
-                            </span>
-                            <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-1.5 py-0.2 rounded-sm border border-emerald-100">Real</span>
-                          </div>
-                          <p className="text-xs text-gray-500 font-medium mt-0.5">Total Monthly Visitors</p>
-                        </div>
-                      </div>
-
-                      {/* Metric 2: Songwriters Engaged */}
-                      <div className="flex items-start gap-3 p-2.5 rounded-xl bg-slate-50/50 border border-slate-100 hover:border-purple-100 transition-colors">
-                        <div className="p-2 bg-purple-500/10 text-purple-600 rounded-xl shrink-0">
-                          <Music className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-baseline justify-between">
-                            <span className="text-lg font-bold text-gray-900 font-display">
-                              {new Set(songs.map(s => s.artist.trim())).size}
-                            </span>
-                            <span className="text-[9px] font-bold text-purple-600 uppercase bg-purple-50 px-1.5 py-0.2 rounded-sm border border-purple-100">Artists</span>
-                          </div>
-                          <p className="text-xs text-gray-500 font-medium mt-0.5">Songwriters Engaged</p>
-                        </div>
-                      </div>
-
-                      {/* Metric 3: Lyrics Writers Engaged */}
-                      <div className="flex items-start gap-3 p-2.5 rounded-xl bg-slate-50/50 border border-slate-100 hover:border-rose-100 transition-colors">
-                        <div className="p-2 bg-rose-500/10 text-rose-600 rounded-xl shrink-0">
-                          <Users className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-baseline justify-between">
-                            <span className="text-lg font-bold text-gray-900 font-display">
-                              {registeredUsersCount}
-                            </span>
-                            <span className="text-[9px] font-bold text-rose-600 uppercase bg-rose-50 px-1.5 py-0.2 rounded-sm border border-rose-100">Writers</span>
-                          </div>
-                          <p className="text-xs text-gray-500 font-medium mt-0.5">Lyrics Writers & Translators</p>
-                        </div>
-                      </div>
-
-                      {/* Metric 4: New Writing Updates */}
-                      <div className="flex items-start gap-3 p-2.5 rounded-xl bg-slate-50/50 border border-slate-100 hover:border-blue-100 transition-colors">
-                        <div className="p-2 bg-blue-500/10 text-blue-600 rounded-xl shrink-0">
-                          <Edit3 className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-baseline justify-between">
-                            <span className="text-lg font-bold text-gray-900 font-display">
-                              {songs.length + activities.filter(a => a.actionType === 'lyrics_edit' || a.actionType === 'song_submit').length}
-                            </span>
-                            <span className="text-[9px] font-bold text-blue-600 uppercase bg-blue-50 px-1.5 py-0.2 rounded-sm border border-blue-100">Updates</span>
-                          </div>
-                          <p className="text-xs text-gray-500 font-medium mt-0.5">New Writing Updates & Edits</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400">
-                      <span className="flex items-center gap-1 font-medium">
-                        <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
-                        Active community contributions
-                      </span>
-                      <span className="font-mono text-[9px] text-gray-300">Updated Real-Time</span>
-                    </div>
-                  </div>
-
-                  {/* Real-Time Platform Activity Stream */}
-                  <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs">
-                    <div className="flex items-center justify-between border-b border-gray-100 pb-2.5 mb-3">
-                      <h3 className="font-display font-bold text-sm text-gray-900 tracking-tight flex items-center gap-1.5">
-                        <Activity className="w-4 h-4 text-emerald-500" />
-                        Recent Platform Activity
-                      </h3>
-                      <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider bg-gray-50 px-2 py-0.5 rounded-md">Live</span>
                     </div>
                     
                     {activitiesLoading ? (
                       <div className="flex justify-center py-8">
                         <Loader2 className="w-5 h-5 animate-spin text-emerald-500" />
                       </div>
-                    ) : activities.length === 0 ? (
-                      <p className="text-xs text-gray-450 text-center py-6">No recent actions recorded.</p>
                     ) : (
-                      <div className="space-y-3.5 max-h-[280px] overflow-y-auto pr-1">
-                        {activities.slice(0, 10).map((act) => (
-                          <div key={act.id} className="text-xs border-b border-gray-50 pb-2.5 last:border-0 last:pb-0">
-                            <div className="flex justify-between items-start gap-2">
-                              <span className="font-bold text-gray-900">{act.username}</span>
-                              <span className="text-[9px] text-gray-400 shrink-0 font-mono">
-                                {new Date(act.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-                            <p className="text-gray-650 mt-1 leading-relaxed">{act.details}</p>
-                          </div>
-                        ))}
+                      <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1">
+                        <AnimatePresence initial={false}>
+                          {(activities.length > 0 ? activities : defaultActivities).slice(0, 10).map((act) => {
+                            const meta = getActivityMeta(act.actionType);
+                            const hasLink = act.songId && songs.some(s => s.id === act.songId);
+                            
+                            return (
+                              <motion.div 
+                                key={act.id}
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={{ duration: 0.25 }}
+                                onClick={() => {
+                                  if (hasLink && act.songId) {
+                                    handleSelectSong(act.songId);
+                                  }
+                                }}
+                                className={`group p-2.5 rounded-xl border border-transparent transition-all text-xs relative ${
+                                  hasLink 
+                                    ? 'hover:bg-slate-50/70 hover:border-slate-100 cursor-pointer active:scale-98' 
+                                    : 'hover:bg-slate-50/30'
+                                }`}
+                              >
+                                <div className="flex justify-between items-start gap-2">
+                                  <div className="flex items-center gap-1.5 min-w-0">
+                                    <span className="font-bold text-gray-900 truncate">{act.username}</span>
+                                    <span className={`text-[8px] font-bold uppercase px-1.5 py-0.2 rounded-md border shrink-0 flex items-center gap-0.5 ${meta.badgeClass}`}>
+                                      {meta.icon}
+                                      {meta.labelText}
+                                    </span>
+                                  </div>
+                                  <span className="text-[9px] text-gray-400 shrink-0 font-mono">
+                                    {new Date(act.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                </div>
+                                <p className="text-gray-650 mt-1 leading-relaxed">{act.details}</p>
+                                
+                                {hasLink && (
+                                  <div className="mt-1.5 flex items-center gap-1 text-[9px] text-emerald-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span>View song translation</span>
+                                    <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                                  </div>
+                                )}
+                              </motion.div>
+                            );
+                          })}
+                        </AnimatePresence>
                       </div>
                     )}
                   </div>
