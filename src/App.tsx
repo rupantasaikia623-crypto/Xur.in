@@ -2148,7 +2148,7 @@ export default function App() {
                   </div>
                   <div className="mt-4 pt-3 border-t border-slate-900 flex justify-start">
                     <a 
-                      href="https://www.instagram.com/udipta_pran?igsh=MTcybGdwZmV6Nnc4cw==" 
+                      href="https://www.instagram.com/_udipta_pran_?igsh=MWhlN2s3cmlyNzc5bw==" 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer"
