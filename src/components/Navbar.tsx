@@ -192,7 +192,7 @@ export default function Navbar({
             )}
           </div>
 
-          {/* Mobile hamburger */}
+          {/* Mobile hamburger & Profile button */}
           <div className="flex md:hidden items-center gap-2">
             {currentUser && (currentUser.role === 'moderator' || currentUser.role === 'admin') && (
               <button
@@ -202,9 +202,42 @@ export default function Navbar({
                 <ShieldAlert className="w-4 h-4" />
               </button>
             )}
+
+            {/* Profile/Auth Button on Mobile Header */}
+            {currentUser ? (
+              <button
+                onClick={() => setProfilePanelOpen(true)}
+                className="p-1 rounded-full border border-emerald-500/20 hover:bg-emerald-50 transition-all cursor-pointer flex items-center justify-center shrink-0"
+                title="Account Menu"
+                id="nav-mobile-profile-btn"
+              >
+                {currentUser.avatarUrl ? (
+                  <img 
+                    src={currentUser.avatarUrl} 
+                    alt="" 
+                    className="w-7 h-7 rounded-full object-cover" 
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-xs uppercase">
+                    {currentUser.displayName.slice(0, 2)}
+                  </div>
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={() => onOpenAuth('login')}
+                className="p-2 text-gray-500 hover:text-emerald-600 hover:bg-gray-50 rounded-xl transition-all cursor-pointer shrink-0"
+                title="Sign In"
+                id="nav-mobile-signin-btn"
+              >
+                <User className="w-4.5 h-4.5" />
+              </button>
+            )}
+
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 hover:bg-gray-50 text-gray-500 rounded-xl transition-all"
+              className="p-2 hover:bg-gray-50 text-gray-500 rounded-xl transition-all cursor-pointer"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
