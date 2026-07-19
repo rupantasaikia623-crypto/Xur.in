@@ -18,6 +18,7 @@ import {
   incrementAndGetPageViews,
   submitFeedback,
   fetchFeedback,
+  deleteFeedback,
   logUserActivity,
   fetchUserActivities,
   deleteUserSubmittedLyrics
@@ -420,6 +421,38 @@ export default function App() {
       setFbError(error instanceof Error ? error.message : "Failed to save feedback permanently. It remains saved in local storage fallback.");
     } finally {
       setFbSubmitting(false);
+    }
+  };
+
+  const canDeleteFeedback = (fb: UserFeedback) => {
+    if (currentUser && fb.userId === currentUser.uid) return true;
+    if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'moderator')) return true;
+    try {
+      const local = JSON.parse(localStorage.getItem("xur_local_feedbacks") || "[]");
+      if (local.some((l: any) => l.id === fb.id)) return true;
+    } catch {
+      // ignore
+    }
+    return false;
+  };
+
+  const handleDeleteFeedback = async (feedbackId: string) => {
+    if (!window.confirm("Are you sure you want to permanently delete this feedback?")) {
+      return;
+    }
+
+    try {
+      setFeedbacksLoading(true);
+      await deleteFeedback(feedbackId);
+      
+      // Update local state
+      setFeedbacks(prev => prev.filter(item => item.id !== feedbackId));
+      setToastMessage("Feedback deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting feedback:", error);
+      setToastMessage(error instanceof Error ? error.message : "Failed to delete feedback.");
+    } finally {
+      setFeedbacksLoading(false);
     }
   };
 
@@ -1206,9 +1239,9 @@ export default function App() {
                         {feedbacks.slice(0, 5).map((fb) => (
                           <div key={fb.id} className="text-[11px] border-b border-emerald-50/50 pb-2.5 last:border-0 last:pb-0">
                             <div className="flex justify-between items-start gap-1">
-                              <span className="font-bold text-gray-900 flex items-center gap-1">
-                                {fb.username}
-                                <span className={`text-[8px] px-1 py-0.2 rounded-sm font-semibold capitalize ${
+                              <span className="font-bold text-gray-900 flex items-center gap-1 min-w-0">
+                                <span className="truncate max-w-[100px]">{fb.username}</span>
+                                <span className={`text-[8px] px-1 py-0.2 rounded-sm font-semibold capitalize shrink-0 ${
                                   fb.category === 'bug' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
                                   fb.category === 'praise' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
                                   fb.category === 'suggestion' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
@@ -1217,10 +1250,21 @@ export default function App() {
                                   {fb.category}
                                 </span>
                               </span>
-                              <div className="flex items-center gap-0.5 text-amber-400 shrink-0">
-                                {Array.from({ length: 5 }).map((_, i) => (
-                                  <Star key={i} className={`w-2 h-2 ${i < fb.rating ? 'fill-amber-400' : 'text-gray-200'}`} />
-                                ))}
+                              <div className="flex items-center gap-1 shrink-0">
+                                <div className="flex items-center gap-0.5 text-amber-400">
+                                  {Array.from({ length: 5 }).map((_, i) => (
+                                    <Star key={i} className={`w-2 h-2 ${i < fb.rating ? 'fill-amber-400' : 'text-gray-200'}`} />
+                                  ))}
+                                </div>
+                                {canDeleteFeedback(fb) && (
+                                  <button
+                                    onClick={() => handleDeleteFeedback(fb.id)}
+                                    className="p-1 text-gray-400 hover:text-rose-600 rounded-md hover:bg-rose-50/50 transition-colors cursor-pointer"
+                                    title="Delete feedback permanently"
+                                  >
+                                    <Trash2 className="w-2.5 h-2.5" />
+                                  </button>
+                                )}
                               </div>
                             </div>
                             <p className="text-gray-600 mt-1 leading-relaxed italic bg-white/70 p-1.5 rounded-lg border border-emerald-50/50 shadow-2xs">
@@ -2440,10 +2484,21 @@ export default function App() {
                                   {fb.category}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-0.5 text-amber-400">
-                                {Array.from({ length: 5 }).map((_, i) => (
-                                  <Star key={i} className={`w-3 h-3 ${i < fb.rating ? 'fill-amber-400' : 'text-gray-250'}`} />
-                                ))}
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-0.5 text-amber-400">
+                                  {Array.from({ length: 5 }).map((_, i) => (
+                                    <Star key={i} className={`w-3 h-3 ${i < fb.rating ? 'fill-amber-400' : 'text-gray-250'}`} />
+                                  ))}
+                                </div>
+                                {canDeleteFeedback(fb) && (
+                                  <button
+                                    onClick={() => handleDeleteFeedback(fb.id)}
+                                    className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all cursor-pointer"
+                                    title="Delete feedback permanently"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
                               </div>
                             </div>
                             <p className="text-xs text-gray-750 leading-relaxed italic bg-white border border-gray-100/60 p-2.5 rounded-xl group-hover:shadow-xs transition-shadow">

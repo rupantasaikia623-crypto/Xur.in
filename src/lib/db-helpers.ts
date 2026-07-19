@@ -12,7 +12,8 @@ import {
   limit, 
   increment,
   arrayUnion,
-  arrayRemove
+  arrayRemove,
+  deleteDoc
 } from 'firebase/firestore';
 import { db, auth } from './firebase';
 import { Song, Comment, SongVersion, UserProfile, FlagReport, UserFeedback, UserActivity } from '../types';
@@ -1029,6 +1030,26 @@ export async function fetchFeedback(): Promise<UserFeedback[]> {
   } catch (e) {
     console.warn("Firestore fetchFeedback failed, loading local", e);
     return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_FEEDBACKS) || "[]");
+  }
+}
+
+// Delete user feedback
+export async function deleteFeedback(feedbackId: string): Promise<void> {
+  // 1. Delete from local storage
+  try {
+    const localFbs = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_FEEDBACKS) || "[]");
+    const updated = localFbs.filter((fb: UserFeedback) => fb.id !== feedbackId);
+    localStorage.setItem(LOCAL_STORAGE_KEY_FEEDBACKS, JSON.stringify(updated));
+  } catch (err) {
+    console.error("Local storage feedback delete failed", err);
+  }
+
+  // 2. Delete from Firestore
+  try {
+    await deleteDoc(doc(db, "feedbacks", feedbackId));
+  } catch (e) {
+    console.error("Firestore deleteFeedback failed:", e);
+    throw new Error(e instanceof Error ? e.message : "Could not delete feedback from database.");
   }
 }
 
