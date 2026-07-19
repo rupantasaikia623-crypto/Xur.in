@@ -2427,6 +2427,11 @@ export default function App() {
                     Submitting as <span className="font-bold text-gray-700">{currentUser ? currentUser.displayName : 'Guest Listener (Anonymous)'}</span>
                   </div>
 
+                  <div className="bg-emerald-50/40 border border-emerald-100/30 rounded-lg p-2 text-center text-[10px] text-emerald-800/80 font-medium flex items-center justify-center gap-1.5">
+                    <span>🌐</span>
+                    <span>This feedback is public and visible to everyone in the community</span>
+                  </div>
+
                   <button
                     type="submit"
                     disabled={fbSubmitting}
