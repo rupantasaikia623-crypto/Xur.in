@@ -954,6 +954,19 @@ export default function App() {
     loadAllSongs();
   };
 
+  const handleUpdateProfile = async (updatedData: Partial<UserProfile>) => {
+    if (!currentUser) return;
+    const newProfile = { ...currentUser, ...updatedData };
+    await saveProfile(newProfile);
+    setCurrentUser(newProfile);
+    
+    // Save in local mock profile cache
+    const profiles = JSON.parse(localStorage.getItem('xur_local_profile') || '{}');
+    profiles[currentUser.uid] = newProfile;
+    localStorage.setItem('xur_local_profile', JSON.stringify(profiles));
+    setToastMessage("Your profile has been updated successfully!");
+  };
+
   return (
     <div className="min-h-screen bg-slate-50/50 flex flex-col font-sans selection:bg-emerald-100 antialiased text-gray-800">
       
@@ -965,8 +978,10 @@ export default function App() {
         onNavigate={setCurrentPage}
         currentPage={currentPage}
         currentUser={currentUser}
-        onOpenAuth={() => { setAuthMode('login'); setAuthModalOpen(true); }}
+        onOpenAuth={(mode) => { setAuthMode(mode || 'login'); setAuthModalOpen(true); }}
         onLogout={handleLogout}
+        onUpdateProfile={handleUpdateProfile}
+        feedbacks={feedbacks}
       />
 
       {/* Main Container */}

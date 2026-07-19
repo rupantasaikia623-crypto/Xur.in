@@ -13,6 +13,8 @@ import {
   X,
   Sparkles
 } from 'lucide-react';
+import { UserProfile, UserFeedback } from '../types';
+import ProfilePanel from './ProfilePanel';
 
 interface NavbarProps {
   onSearch: (text: string) => void;
@@ -20,9 +22,11 @@ interface NavbarProps {
   onGenreFilter: (genre: string) => void;
   onNavigate: (page: string, songId?: string) => void;
   currentPage: string;
-  currentUser: { uid: string; displayName: string; role?: 'user' | 'moderator' | 'admin' } | null;
-  onOpenAuth: () => void;
+  currentUser: UserProfile | null;
+  onOpenAuth: (mode?: 'login' | 'register') => void;
   onLogout: () => void;
+  onUpdateProfile: (updatedProfile: Partial<UserProfile>) => Promise<void>;
+  feedbacks: UserFeedback[];
 }
 
 const LANGUAGES = ["All", "Assamese", "Bengali", "Hindi", "English"];
@@ -36,12 +40,15 @@ export default function Navbar({
   currentPage,
   currentUser,
   onOpenAuth,
-  onLogout
+  onLogout,
+  onUpdateProfile,
+  feedbacks
 }: NavbarProps) {
   const [searchText, setSearchText] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('All');
   const [selectedGenre, setSelectedGenre] = useState('All');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profilePanelOpen, setProfilePanelOpen] = useState(false);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -143,27 +150,45 @@ export default function Navbar({
                   <LogOut className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => onNavigate('profile')}
+                  onClick={() => setProfilePanelOpen(true)}
                   className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                    currentPage === 'profile'
-                      ? 'bg-emerald-50 text-emerald-700'
+                    profilePanelOpen
+                      ? 'bg-emerald-50 text-emerald-700 font-bold'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                   id="nav-profile-btn"
                 >
-                  <User className="w-4 h-4 text-emerald-600" />
+                  {currentUser.avatarUrl ? (
+                    <img 
+                      src={currentUser.avatarUrl} 
+                      alt="" 
+                      className="w-5 h-5 rounded-full object-cover border border-emerald-500/20" 
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <User className="w-4 h-4 text-emerald-600" />
+                  )}
                   {currentUser.displayName}
                 </button>
               </div>
             ) : (
-              <button
-                onClick={onOpenAuth}
-                className="flex items-center gap-1.5 border border-emerald-500 text-emerald-600 hover:bg-emerald-50/50 font-semibold text-xs py-2 px-4 rounded-xl transition-colors cursor-pointer"
-                id="nav-login-trigger"
-              >
-                <User className="w-4 h-4" />
-                Sign In
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onOpenAuth('login')}
+                  className="text-gray-600 hover:text-emerald-600 font-semibold text-xs py-2 px-3 rounded-xl transition-colors cursor-pointer"
+                  id="nav-login-trigger"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => onOpenAuth('register')}
+                  className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs py-2 px-3.5 rounded-xl transition-all cursor-pointer shadow-xs"
+                  id="nav-register-trigger"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Create Account
+                </button>
+              </div>
             )}
           </div>
 
@@ -266,28 +291,41 @@ export default function Navbar({
           {currentUser ? (
             <div className="space-y-2 pt-2 border-t border-gray-50">
               <button
-                onClick={() => { onNavigate('profile'); setMobileMenuOpen(false); }}
+                onClick={() => { setProfilePanelOpen(true); setMobileMenuOpen(false); }}
                 className="w-full flex items-center justify-center gap-1.5 bg-emerald-50 text-emerald-800 text-xs font-semibold py-2.5 rounded-xl cursor-pointer"
               >
-                <User className="w-4 h-4" />
-                {currentUser.displayName} (Profile)
+                {currentUser.avatarUrl ? (
+                  <img src={currentUser.avatarUrl} alt="" className="w-5 h-5 rounded-full object-cover border border-emerald-500/10" referrerPolicy="no-referrer" />
+                ) : (
+                  <User className="w-4 h-4 text-emerald-600" />
+                )}
+                {currentUser.displayName} (Account Menu)
               </button>
               <button
                 onClick={() => { onLogout(); setMobileMenuOpen(false); }}
-                className="w-full flex items-center justify-center gap-1.5 border border-gray-100 text-gray-500 hover:text-gray-800 text-xs font-semibold py-2.5 rounded-xl"
+                className="w-full flex items-center justify-center gap-1.5 border border-gray-100 text-gray-500 hover:text-gray-800 text-xs font-semibold py-2.5 rounded-xl cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
                 Sign Out
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => { onOpenAuth(); setMobileMenuOpen(false); }}
-              className="w-full flex items-center justify-center gap-1.5 border border-emerald-500 text-emerald-600 text-xs font-semibold py-2.5 rounded-xl"
-            >
-              <User className="w-4 h-4" />
-              Sign In / Register
-            </button>
+            <div className="flex flex-col gap-2 pt-2 border-t border-gray-50">
+              <button
+                onClick={() => { onOpenAuth('login'); setMobileMenuOpen(false); }}
+                className="w-full flex items-center justify-center gap-1.5 border border-emerald-500 text-emerald-600 text-xs font-semibold py-2.5 rounded-xl cursor-pointer"
+              >
+                <User className="w-4 h-4" />
+                Sign In
+              </button>
+              <button
+                onClick={() => { onOpenAuth('register'); setMobileMenuOpen(false); }}
+                className="w-full flex items-center justify-center gap-1.5 bg-emerald-600 text-white text-xs font-semibold py-2.5 rounded-xl cursor-pointer hover:bg-emerald-500 transition-colors"
+              >
+                <Sparkles className="w-4 h-4" />
+                Create Account
+              </button>
+            </div>
           )}
 
           {/* Filters (Mobile view select options) */}
@@ -322,6 +360,16 @@ export default function Navbar({
           )}
         </div>
       )}
+
+      {/* Render the full account profile details drawer */}
+      <ProfilePanel 
+        isOpen={profilePanelOpen}
+        onClose={() => setProfilePanelOpen(false)}
+        currentUser={currentUser}
+        onLogout={onLogout}
+        onUpdateProfile={onUpdateProfile}
+        feedbacks={feedbacks}
+      />
     </nav>
   );
 }
