@@ -549,6 +549,7 @@ export default function App() {
         const profile = await getProfile(user.id);
         if (profile) {
           setCurrentUser(profile);
+          setCurrentPage('profile'); // Redirect already signed up users to profile page automatically on mount
         } else {
           // Setup initial database entry
           const newProfile: UserProfile = {
@@ -564,6 +565,7 @@ export default function App() {
           };
           await saveProfile(newProfile);
           setCurrentUser(newProfile);
+          setCurrentPage('profile'); // Show profile page on signup
         }
       } else {
         setCurrentUser(null);

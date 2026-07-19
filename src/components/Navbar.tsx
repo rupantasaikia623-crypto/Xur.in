@@ -135,24 +135,24 @@ export default function Navbar({
             {currentUser ? (
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => onNavigate('profile')}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                    currentPage === 'profile'
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                      : 'text-gray-600 border-gray-100 hover:bg-gray-50'
-                  }`}
-                  id="nav-profile-btn"
-                >
-                  <User className="w-4 h-4 text-gray-400" />
-                  {currentUser.displayName}
-                </button>
-                <button
                   onClick={onLogout}
                   className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-all cursor-pointer"
                   title="Logout"
                   id="nav-logout-btn"
                 >
                   <LogOut className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => onNavigate('profile')}
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    currentPage === 'profile'
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                  id="nav-profile-btn"
+                >
+                  <User className="w-4 h-4 text-emerald-600" />
+                  {currentUser.displayName}
                 </button>
               </div>
             ) : (
@@ -267,7 +267,7 @@ export default function Navbar({
             <div className="space-y-2 pt-2 border-t border-gray-50">
               <button
                 onClick={() => { onNavigate('profile'); setMobileMenuOpen(false); }}
-                className="w-full flex items-center justify-center gap-1.5 border border-emerald-100 bg-emerald-50/50 text-emerald-800 text-xs font-semibold py-2.5 rounded-xl"
+                className="w-full flex items-center justify-center gap-1.5 bg-emerald-50 text-emerald-800 text-xs font-semibold py-2.5 rounded-xl cursor-pointer"
               >
                 <User className="w-4 h-4" />
                 {currentUser.displayName} (Profile)
