@@ -1,6 +1,6 @@
 import { initializeApp, getApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAXk1Eb53p4naN7LWM37UfbrpFSxb5J78E",
@@ -14,8 +14,10 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Initialize Firestore with custom databaseId
-const db = getFirestore(app, "ai-studio-bec1f635-62c5-44c0-8335-ae32c1356049");
+// Initialize Firestore with custom databaseId and long polling enabled
+const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true,
+}, "ai-studio-bec1f635-62c5-44c0-8335-ae32c1356049");
 
 // Initialize Auth
 const auth = getAuth(app);
