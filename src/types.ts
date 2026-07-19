@@ -86,6 +86,8 @@ export interface UserFeedback {
   category: 'bug' | 'suggestion' | 'praise' | 'other';
   message: string;
   createdAt: string;
+  songId?: string;
+  songTitle?: string;
 }
 
 export interface UserActivity {

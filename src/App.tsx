@@ -214,7 +214,14 @@ export default function App() {
   // Real activity data & feedback states
   const [activities, setActivities] = useState<UserActivity[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState<boolean>(false);
-  const [feedbacks, setFeedbacks] = useState<UserFeedback[]>([]);
+  const [feedbacks, setFeedbacks] = useState<UserFeedback[]>(() => {
+    try {
+      const local = localStorage.getItem("xur_local_feedbacks");
+      return local ? JSON.parse(local) : [];
+    } catch {
+      return [];
+    }
+  });
   const [feedbacksLoading, setFeedbacksLoading] = useState<boolean>(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState<boolean>(false);
   const [feedbackTab, setFeedbackTab] = useState<'write' | 'view'>('write');
@@ -222,6 +229,8 @@ export default function App() {
   const [fbCategory, setFbCategory] = useState<'bug' | 'suggestion' | 'praise' | 'other'>('praise');
   const [fbMessage, setFbMessage] = useState<string>('');
   const [fbSubmitting, setFbSubmitting] = useState<boolean>(false);
+  const [fbError, setFbError] = useState<string | null>(null);
+  const [fbSuccess, setFbSuccess] = useState<string | null>(null);
 
   // Toast notifications state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -304,13 +313,39 @@ export default function App() {
     const unsubFeedbacks = onSnapshot(
       query(collection(db, "feedbacks"), orderBy("createdAt", "desc")),
       (snapshot) => {
-        const list = snapshot.docs.map(d => d.data() as UserFeedback);
-        setFeedbacks(list);
+        const serverList = snapshot.docs.map(d => d.data() as UserFeedback);
+        
+        // Load local feedbacks to merge offline/unsynced entries securely without duplication
+        const localList: UserFeedback[] = (() => {
+          try {
+            return JSON.parse(localStorage.getItem("xur_local_feedbacks") || "[]");
+          } catch {
+            return [];
+          }
+        })();
+
+        const mergedMap = new Map<string, UserFeedback>();
+        // Add local items first
+        localList.forEach(item => mergedMap.set(item.id, item));
+        // Overwrite or append server items to guarantee up-to-date server state
+        serverList.forEach(item => mergedMap.set(item.id, item));
+
+        const mergedList = Array.from(mergedMap.values()).sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+
+        setFeedbacks(mergedList);
         setFeedbacksLoading(false);
       },
       (err) => {
-        console.warn("Real-time feedbacks listener failed:", err);
+        console.warn("Real-time feedbacks listener failed, using local/cached feedbacks:", err);
         setFeedbacksLoading(false);
+        try {
+          const cached = JSON.parse(localStorage.getItem("xur_local_feedbacks") || "[]");
+          setFeedbacks(cached);
+        } catch {
+          // ignore
+        }
       }
     );
 
@@ -325,32 +360,64 @@ export default function App() {
 
   const handleSubmitFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fbMessage.trim()) return;
+    setFbError(null);
+    setFbSuccess(null);
+
+    // 1. Validation - block empty messages
+    if (!fbMessage.trim()) {
+      setFbError("Empty feedback cannot be submitted. Please write a constructive suggestion, bug, or praise.");
+      return;
+    }
+
+    // 2. Prevent duplicate submissions if clicked multiple times
+    if (fbSubmitting) return;
 
     try {
       setFbSubmitting(true);
       const authorId = currentUser ? currentUser.uid : 'anonymous';
       const authorName = currentUser ? currentUser.displayName : 'Guest Listener';
       
-      const newFb = await submitFeedback(fbRating, fbCategory, fbMessage, authorId, authorName);
+      // 3. Link feedback to the current property/listing (Selected Song) if available
+      const songId = selectedSong ? selectedSong.id : undefined;
+      const songTitle = selectedSong ? `${selectedSong.title} (${selectedSong.artist})` : undefined;
+
+      const newFb = await submitFeedback(
+        fbRating, 
+        fbCategory, 
+        fbMessage, 
+        authorId, 
+        authorName,
+        songId,
+        songTitle
+      );
       
-      // Update local state
-      setFeedbacks(prev => [newFb, ...prev]);
+      // Update local state by merging prepended new feedback
+      setFeedbacks(prev => {
+        const filtered = prev.filter(item => item.id !== newFb.id);
+        return [newFb, ...filtered];
+      });
       
-      // Log this action to community activity logs!
-      const actDetails = `Submitted a ${fbCategory} feedback: "${fbMessage.substring(0, 45)}${fbMessage.length > 45 ? '...' : ''}"`;
-      const newAct = await logUserActivity('feedback_submit', actDetails, undefined, authorId, authorName);
+      // Log action to activities
+      const actDetails = `Submitted ${fbCategory} feedback${songTitle ? ` on ${selectedSong?.title}` : ''}: "${fbMessage.substring(0, 45)}${fbMessage.length > 45 ? '...' : ''}"`;
+      const newAct = await logUserActivity('feedback_submit', actDetails, songId, authorId, authorName);
       setActivities(prev => [newAct, ...prev]);
 
-      // Reset form
+      // 4. Reset state on success and display inline message
       setFbMessage('');
       setFbRating(5);
       setFbCategory('praise');
-      setToastMessage('Thank you so much for your feedback! It helps build Sur.');
-      setShowFeedbackModal(false);
+      setFbSuccess("Thank you! Your feedback was saved permanently to the database.");
+      setToastMessage("Feedback saved permanently to database!");
+
+      // Close modal after 2.5 seconds to show success message
+      setTimeout(() => {
+        setShowFeedbackModal(false);
+        setFbSuccess(null);
+      }, 2500);
+
     } catch (error) {
       console.error("Error submitting feedback:", error);
-      setToastMessage('Failed to submit feedback. Please try again.');
+      setFbError(error instanceof Error ? error.message : "Failed to save feedback permanently. It remains saved in local storage fallback.");
     } finally {
       setFbSubmitting(false);
     }
@@ -1159,6 +1226,12 @@ export default function App() {
                             <p className="text-gray-600 mt-1 leading-relaxed italic bg-white/70 p-1.5 rounded-lg border border-emerald-50/50 shadow-2xs">
                               "{fb.message}"
                             </p>
+                            {fb.songTitle && (
+                              <div className="mt-1 text-[8px] text-emerald-700 bg-emerald-50/30 rounded-md px-1.5 py-0.5 inline-flex items-center gap-0.5 border border-emerald-100/40 font-semibold max-w-full">
+                                <span className="shrink-0">🎵</span>
+                                <span className="truncate max-w-[150px]">{fb.songTitle}</span>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -2210,6 +2283,38 @@ export default function App() {
             <div className="overflow-y-auto pr-1 flex-1">
               {feedbackTab === 'write' ? (
                 <form onSubmit={handleSubmitFeedback} className="space-y-4">
+                  {/* Inline Success and Error States */}
+                  {fbError && (
+                    <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded-xl p-3 text-xs font-semibold flex items-start gap-2">
+                      <span className="shrink-0 mt-0.5">⚠️</span>
+                      <span>{fbError}</span>
+                    </div>
+                  )}
+
+                  {fbSuccess && (
+                    <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl p-3 text-xs font-semibold flex items-start gap-2 animate-pulse">
+                      <span className="shrink-0 mt-0.5">✅</span>
+                      <span>{fbSuccess}</span>
+                    </div>
+                  )}
+
+                  {/* Linked Song Listing concept (Property / Listing mapping) */}
+                  {selectedSong && (
+                    <div className="bg-emerald-50/60 border border-emerald-100 rounded-xl p-3 text-xs text-emerald-800 flex flex-col gap-1">
+                      <div className="flex items-center gap-1.5 font-bold uppercase text-[9px] tracking-wider text-emerald-700">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        Linked Song Listing
+                      </div>
+                      <div className="font-medium text-slate-800 flex items-center gap-1">
+                        <span className="text-emerald-600 font-bold">🎵</span>
+                        {selectedSong.title} — <span className="text-gray-500 font-normal">{selectedSong.artist}</span>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Star Rating selector */}
                   <div>
                     <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 text-center">
@@ -2263,7 +2368,10 @@ export default function App() {
                     </label>
                     <textarea
                       value={fbMessage}
-                      onChange={(e) => setFbMessage(e.target.value)}
+                      onChange={(e) => {
+                        setFbMessage(e.target.value);
+                        if (fbError) setFbError(null);
+                      }}
                       placeholder="Share details of your experience, suggestions for new features, or any bugs you encountered..."
                       className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none text-gray-800 h-28 resize-none focus:border-emerald-500 transition-colors"
                       required
@@ -2341,6 +2449,12 @@ export default function App() {
                             <p className="text-xs text-gray-750 leading-relaxed italic bg-white border border-gray-100/60 p-2.5 rounded-xl group-hover:shadow-xs transition-shadow">
                               "{fb.message}"
                             </p>
+                            {fb.songTitle && (
+                              <div className="mt-2 text-[10px] text-emerald-700 bg-emerald-50/50 rounded-lg px-2.5 py-1 inline-flex items-center gap-1 border border-emerald-100/50 font-medium">
+                                <span>🎵</span>
+                                <span className="font-bold truncate max-w-[200px]" title={fb.songTitle}>{fb.songTitle}</span>
+                              </div>
+                            )}
                           </div>
                           <div className="text-[10px] text-gray-400 mt-3 text-right font-mono font-medium">
                             {new Date(fb.createdAt).toLocaleDateString(undefined, { 

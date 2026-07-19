@@ -984,7 +984,9 @@ export async function submitFeedback(
   category: 'bug' | 'suggestion' | 'praise' | 'other',
   message: string,
   userId?: string,
-  username?: string
+  username?: string,
+  songId?: string,
+  songTitle?: string
 ): Promise<UserFeedback> {
   const feedback: UserFeedback = {
     id: `fb_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
@@ -993,10 +995,12 @@ export async function submitFeedback(
     rating,
     category,
     message,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    songId: songId || undefined,
+    songTitle: songTitle || undefined
   };
 
-  // 1. Sync to local storage
+  // 1. Sync to local storage immediately so it is never lost
   try {
     const localFbs = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_FEEDBACKS) || "[]");
     localFbs.unshift(feedback);
@@ -1005,11 +1009,12 @@ export async function submitFeedback(
     console.error("Local storage feedback sync failed", err);
   }
 
-  // 2. Sync to Firestore
+  // 2. Sync to Firestore, propagate errors so the UI can notify the user
   try {
     await setDoc(doc(db, "feedbacks", feedback.id), feedback);
   } catch (e) {
-    console.warn("Firestore submitFeedback failed, running locally", e);
+    console.error("Firestore submitFeedback failed:", e);
+    throw new Error(e instanceof Error ? e.message : "Could not write feedback to database.");
   }
 
   return feedback;
@@ -1019,14 +1024,12 @@ export async function submitFeedback(
 export async function fetchFeedback(): Promise<UserFeedback[]> {
   try {
     const snap = await getDocs(query(collection(db, "feedbacks"), orderBy("createdAt", "desc")));
-    if (!snap.empty) {
-      return snap.docs.map(d => d.data() as UserFeedback);
-    }
+    const list = snap.docs.map(d => d.data() as UserFeedback);
+    return list;
   } catch (e) {
     console.warn("Firestore fetchFeedback failed, loading local", e);
+    return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_FEEDBACKS) || "[]");
   }
-
-  return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_FEEDBACKS) || "[]");
 }
 
 // Log a community action / user activity
