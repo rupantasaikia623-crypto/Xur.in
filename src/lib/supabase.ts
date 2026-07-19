@@ -168,14 +168,16 @@ class MockSupabaseAuth {
   }
 }
 
+// Instantiate a single mock auth instance to share listeners and session across calls
+const mockAuthInstance = new MockSupabaseAuth();
+
 // Export a proxy auth interface that handles active/inactive configurations seamlessly
 export const supabaseAuth = {
   onAuthStateChange: (callback: (event: string, session: any) => void) => {
     if (supabase) {
       return supabase.auth.onAuthStateChange(callback);
     } else {
-      const mock = new MockSupabaseAuth();
-      return mock.onAuthStateChange(callback);
+      return mockAuthInstance.onAuthStateChange(callback);
     }
   },
   
@@ -183,8 +185,7 @@ export const supabaseAuth = {
     if (supabase) {
       return supabase.auth.signInWithPassword({ email, password });
     } else {
-      const mock = new MockSupabaseAuth();
-      return mock.signInWithPassword({ email, password });
+      return mockAuthInstance.signInWithPassword({ email, password });
     }
   },
 
@@ -192,8 +193,7 @@ export const supabaseAuth = {
     if (supabase) {
       return supabase.auth.signUp({ email, password, options });
     } else {
-      const mock = new MockSupabaseAuth();
-      return mock.signUp({ email, password, options });
+      return mockAuthInstance.signUp({ email, password, options });
     }
   },
 
@@ -201,8 +201,7 @@ export const supabaseAuth = {
     if (supabase) {
       return supabase.auth.signOut();
     } else {
-      const mock = new MockSupabaseAuth();
-      return mock.signOut();
+      return mockAuthInstance.signOut();
     }
   },
 
@@ -210,8 +209,7 @@ export const supabaseAuth = {
     if (supabase) {
       return supabase.auth.updateUser({ data });
     } else {
-      const mock = new MockSupabaseAuth();
-      return mock.updateUser({ data });
+      return mockAuthInstance.updateUser({ data });
     }
   }
 };

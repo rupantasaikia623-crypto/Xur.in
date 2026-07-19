@@ -650,6 +650,8 @@ export default function App() {
       }
       setAuthModalOpen(false);
       resetAuthForm();
+      setCurrentPage('profile'); // Automatically route to profile to show profile options
+      setToastMessage('Welcome to Xur! You are now signed in.');
     } catch (err: any) {
       setAuthError(err.message || "Authentication failed. Check your credentials.");
     } finally {
