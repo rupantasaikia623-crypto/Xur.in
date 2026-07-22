@@ -373,7 +373,7 @@ export default function Navbar({
                   className="bg-slate-900 text-slate-200 border border-white/10 rounded-lg text-xs p-2 grow outline-none focus:border-emerald-500"
                 >
                   {LANGUAGES.map(lang => (
-                    <option key={lang} value={lang}>{lang}</option>
+                    <option key={lang} value={lang} className="bg-[#0d121f] text-white">{lang}</option>
                   ))}
                 </select>
               </div>
@@ -386,7 +386,7 @@ export default function Navbar({
                   className="bg-slate-900 text-slate-200 border border-white/10 rounded-lg text-xs p-2 grow outline-none focus:border-teal-500"
                 >
                   {GENRES.map(genre => (
-                    <option key={genre} value={genre}>{genre}</option>
+                    <option key={genre} value={genre} className="bg-[#0d121f] text-white">{genre}</option>
                   ))}
                 </select>
               </div>

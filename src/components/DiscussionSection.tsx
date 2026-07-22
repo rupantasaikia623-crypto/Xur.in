@@ -476,11 +476,11 @@ export default function DiscussionSection({
                   className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-200 outline-none focus:border-rose-500 transition-colors"
                   required
                 >
-                  <option value="">Select a reason...</option>
-                  <option value="Mistranslation / Bad lyrics">Inaccurate lyrics / translation</option>
-                  <option value="Inappropriate Content">Inappropriate / abusive language</option>
-                  <option value="Spam / Self-promotion">Spam or self-promotion</option>
-                  <option value="Copyright violation">Copyright or legal concerns</option>
+                  <option value="" className="bg-[#0d121f] text-white">Select a reason...</option>
+                  <option value="Mistranslation / Bad lyrics" className="bg-[#0d121f] text-white">Inaccurate lyrics / translation</option>
+                  <option value="Inappropriate Content" className="bg-[#0d121f] text-white">Inappropriate / abusive language</option>
+                  <option value="Spam / Self-promotion" className="bg-[#0d121f] text-white">Spam or self-promotion</option>
+                  <option value="Copyright violation" className="bg-[#0d121f] text-white">Copyright or legal concerns</option>
                 </select>
               </div>
 

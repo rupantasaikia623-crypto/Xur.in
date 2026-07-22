@@ -1744,12 +1744,12 @@ export default function App() {
                       className="w-full bg-[#0d1322] border border-white/10 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-emerald-500/50 transition-all text-white"
                       id="new-song-language"
                     >
-                      <option value="Assamese">অসমীয়া (Assamese)</option>
-                      <option value="Bengali">বাংলা (Bengali)</option>
-                      <option value="Hindi">हिन्दी (Hindi)</option>
-                      <option value="English">English</option>
-                      <option value="Sanskrit">Sanskrit</option>
-                      <option value="Other">Other</option>
+                      <option value="Assamese" className="bg-[#0d1322] text-white">অসমীয়া (Assamese)</option>
+                      <option value="Bengali" className="bg-[#0d1322] text-white">বাংলা (Bengali)</option>
+                      <option value="Hindi" className="bg-[#0d1322] text-white">हिन्दी (Hindi)</option>
+                      <option value="English" className="bg-[#0d1322] text-white">English</option>
+                      <option value="Sanskrit" className="bg-[#0d1322] text-white">Sanskrit</option>
+                      <option value="Other" className="bg-[#0d1322] text-white">Other</option>
                     </select>
                   </div>
 
@@ -1761,12 +1761,12 @@ export default function App() {
                       className="w-full bg-[#0d1322] border border-white/10 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-emerald-500/50 transition-all text-white"
                       id="new-song-genre"
                     >
-                      <option value="Folk">Folk</option>
-                      <option value="Classic">Classic</option>
-                      <option value="Rabindra Sangeet">Rabindra Sangeet</option>
-                      <option value="Sufi Pop">Sufi Pop</option>
-                      <option value="Classic Rock">Classic Rock</option>
-                      <option value="Pop">Pop</option>
+                      <option value="Folk" className="bg-[#0d1322] text-white">Folk</option>
+                      <option value="Classic" className="bg-[#0d1322] text-white">Classic</option>
+                      <option value="Rabindra Sangeet" className="bg-[#0d1322] text-white">Rabindra Sangeet</option>
+                      <option value="Sufi Pop" className="bg-[#0d1322] text-white">Sufi Pop</option>
+                      <option value="Classic Rock" className="bg-[#0d1322] text-white">Classic Rock</option>
+                      <option value="Pop" className="bg-[#0d1322] text-white">Pop</option>
                     </select>
                   </div>
 
@@ -2538,19 +2538,19 @@ export default function App() {
                   {feedbacksLoading ? (
                     <div className="flex flex-col items-center justify-center py-12 gap-3">
                       <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
-                      <span className="text-xs text-slate-400 font-medium">Loading community feedbacks...</span>
+                      <span className="text-xs text-slate-400 font-medium">Loading community suggestions & feedback...</span>
                     </div>
                   ) : feedbacks.length === 0 ? (
                     <div className="text-center py-12 bg-white/5 rounded-2xl border border-white/10">
                       <Sparkles className="w-8 h-8 text-amber-400 mx-auto mb-2 opacity-60 animate-bounce" />
-                      <p className="text-xs sm:text-sm font-bold text-gray-700">No feedbacks yet!</p>
-                      <p className="text-[11px] text-gray-450 mt-1 max-w-xs mx-auto">Be the first to submit a constructive suggestion or praise to build Xur(সুৰ) together.</p>
+                      <p className="text-xs sm:text-sm font-bold text-white">No suggestions or feedback yet!</p>
+                      <p className="text-[11px] text-slate-400 mt-1 max-w-xs mx-auto">Be the first to submit a constructive suggestion or praise to build Xur(সুৰ) together.</p>
                       <button
                         type="button"
                         onClick={() => setFeedbackTab('write')}
-                        className="mt-4 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                        className="mt-4 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-md shadow-emerald-500/20"
                       >
-                        Write First Feedback
+                        Write First Suggestion
                       </button>
                     </div>
                   ) : (
@@ -2561,19 +2561,19 @@ export default function App() {
                       ).map((fb) => (
                         <div 
                           key={fb.id} 
-                          className="bg-gray-50/50 border border-gray-100 hover:border-gray-200 hover:bg-white rounded-2xl p-4 transition-all flex flex-col justify-between shadow-xs group"
+                          className="bg-[#0d1322]/90 border border-white/10 hover:border-emerald-500/30 hover:bg-white/5 rounded-2xl p-4 transition-all flex flex-col justify-between shadow-lg group"
                         >
                           <div>
                             <div className="flex justify-between items-start gap-2 mb-2">
                               <div>
-                                <span className="font-bold text-xs sm:text-sm text-gray-950 block">
+                                <span className="font-bold text-xs sm:text-sm text-white block">
                                   {fb.username || "Guest Listener"}
                                 </span>
-                                <span className={`inline-block text-[9px] font-extrabold px-1.5 py-0.5 rounded-md mt-1 uppercase ${
-                                  fb.category === 'bug' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
-                                  fb.category === 'praise' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                                  fb.category === 'suggestion' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
-                                  'bg-blue-50 text-blue-600 border border-blue-100'
+                                <span className={`inline-block text-[9px] font-extrabold px-2 py-0.5 rounded-md mt-1 uppercase ${
+                                  fb.category === 'bug' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' :
+                                  fb.category === 'praise' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                                  fb.category === 'suggestion' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+                                  'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
                                 }`}>
                                   {fb.category}
                                 </span>
@@ -2581,13 +2581,13 @@ export default function App() {
                               <div className="flex items-center gap-2">
                                 <div className="flex items-center gap-0.5 text-amber-400">
                                   {Array.from({ length: 5 }).map((_, i) => (
-                                    <Star key={i} className={`w-3 h-3 ${i < fb.rating ? 'fill-amber-400' : 'text-gray-250'}`} />
+                                    <Star key={i} className={`w-3 h-3 ${i < fb.rating ? 'fill-amber-400' : 'text-slate-700'}`} />
                                   ))}
                                 </div>
                                 {canDeleteFeedback(fb) && (
                                   <button
                                     onClick={() => handleDeleteFeedback(fb.id)}
-                                    className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all cursor-pointer"
+                                    className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all cursor-pointer"
                                     title="Delete feedback permanently"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -2595,17 +2595,17 @@ export default function App() {
                                 )}
                               </div>
                             </div>
-                            <p className="text-xs text-gray-750 leading-relaxed italic bg-white border border-gray-100/60 p-2.5 rounded-xl group-hover:shadow-xs transition-shadow">
+                            <p className="text-xs text-slate-200 leading-relaxed italic bg-white/5 border border-white/10 p-2.5 rounded-xl group-hover:bg-white/10 transition-colors">
                               "{fb.message}"
                             </p>
                             {fb.songTitle && (
-                              <div className="mt-2 text-[10px] text-emerald-700 bg-emerald-50/50 rounded-lg px-2.5 py-1 inline-flex items-center gap-1 border border-emerald-100/50 font-medium">
+                              <div className="mt-2 text-[10px] text-emerald-300 bg-emerald-500/10 rounded-lg px-2.5 py-1 inline-flex items-center gap-1 border border-emerald-500/20 font-medium">
                                 <span>🎵</span>
                                 <span className="font-bold truncate max-w-[200px]" title={fb.songTitle}>{fb.songTitle}</span>
                               </div>
                             )}
                           </div>
-                          <div className="text-[10px] text-gray-400 mt-3 text-right font-mono font-medium">
+                          <div className="text-[10px] text-slate-400 mt-3 text-right font-mono font-medium">
                             {new Date(fb.createdAt).toLocaleDateString(undefined, { 
                               year: 'numeric', 
                               month: 'short', 
