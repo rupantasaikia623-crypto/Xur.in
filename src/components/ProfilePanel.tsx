@@ -123,22 +123,22 @@ export default function ProfilePanel({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 h-full w-full sm:max-w-md bg-white shadow-2xl border-l border-gray-100 z-50 flex flex-col focus:outline-none"
+            className="fixed top-0 right-0 h-full w-full sm:max-w-md bg-[#0a0e17]/95 text-slate-100 shadow-2xl border-l border-white/10 z-50 flex flex-col focus:outline-none backdrop-blur-2xl"
             id="profile-panel-container"
           >
             {/* Header */}
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+            <div className="p-5 border-b border-white/10 flex items-center justify-between bg-[#0d121f]/80">
               <div className="flex items-center gap-2">
                 {activeTab !== 'main' && (
                   <button 
                     onClick={() => setActiveTab('main')}
-                    className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
+                    className="p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
                     title="Back to main menu"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                 )}
-                <h2 className="font-display font-bold text-lg text-gray-900 tracking-tight">
+                <h2 className="font-display font-bold text-lg text-white tracking-tight">
                   {activeTab === 'main' && 'User Account'}
                   {activeTab === 'edit' && 'Edit Profile Details'}
                   {activeTab === 'feedback' && 'Community Feedback'}
@@ -147,7 +147,7 @@ export default function ProfilePanel({
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-700 transition-colors"
+                className="p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
                 id="profile-panel-close-btn"
               >
                 <X className="w-5 h-5" />
@@ -155,7 +155,7 @@ export default function ProfilePanel({
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-none">
               
               {/* TAB 1: MAIN ACCOUNT VIEW */}
               {activeTab === 'main' && (
@@ -167,17 +167,17 @@ export default function ProfilePanel({
                         <img 
                           src={currentUser.avatarUrl} 
                           alt={currentUser.displayName} 
-                          className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md"
+                          className="w-24 h-24 rounded-full object-cover border-2 border-emerald-500/50 shadow-xl shadow-emerald-500/10"
                           referrerPolicy="no-referrer"
                         />
                       ) : (
-                        <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-600 text-white font-display font-bold text-3xl uppercase flex items-center justify-center border-4 border-white shadow-md">
+                        <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-600 text-slate-950 font-display font-bold text-3xl uppercase flex items-center justify-center border-2 border-emerald-400 shadow-xl shadow-emerald-500/10">
                           {currentUser.displayName.slice(0, 2)}
                         </div>
                       )}
                       <button 
                         onClick={() => setActiveTab('edit')}
-                        className="absolute bottom-0 right-0 p-2 bg-emerald-600 text-white hover:bg-emerald-500 rounded-full shadow-lg transition-transform hover:scale-105"
+                        className="absolute bottom-0 right-0 p-2 bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 rounded-full shadow-lg transition-transform hover:scale-110 cursor-pointer"
                         title="Change profile picture"
                       >
                         <Camera className="w-4 h-4" />
@@ -185,22 +185,22 @@ export default function ProfilePanel({
                     </div>
 
                     <div>
-                      <h3 className="font-display font-bold text-xl text-gray-900 tracking-tight flex items-center justify-center gap-1.5">
+                      <h3 className="font-display font-bold text-xl text-white tracking-tight flex items-center justify-center gap-1.5">
                         {currentUser.displayName}
-                        <ShieldCheck className="w-5 h-5 text-emerald-600" title="Verified Member" />
+                        <ShieldCheck className="w-5 h-5 text-emerald-400" title="Verified Member" />
                       </h3>
-                      <p className="text-sm text-gray-500 font-mono mt-0.5">{currentUser.email}</p>
+                      <p className="text-sm text-slate-400 font-mono mt-0.5">{currentUser.email}</p>
                     </div>
 
                     {/* Bio phrase */}
                     {currentUser.bio ? (
-                      <p className="text-sm text-gray-600 italic bg-gray-50 px-4 py-3 rounded-2xl border border-gray-100 max-w-sm">
+                      <p className="text-sm text-slate-300 italic bg-white/5 px-4 py-3 rounded-2xl border border-white/10 max-w-sm">
                         "{currentUser.bio}"
                       </p>
                     ) : (
                       <button 
                         onClick={() => setActiveTab('edit')}
-                        className="text-xs text-emerald-600 hover:text-emerald-500 font-semibold cursor-pointer"
+                        className="text-xs text-emerald-400 hover:text-emerald-300 font-bold cursor-pointer"
                       >
                         + Add profile bio phrase
                       </button>
@@ -208,12 +208,12 @@ export default function ProfilePanel({
                   </div>
 
                   {/* Account Status Card */}
-                  <div className="bg-emerald-50/40 border border-emerald-100/50 rounded-2xl p-4 flex items-center justify-between">
+                  <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-4 flex items-center justify-between backdrop-blur-md">
                     <div>
-                      <span className="text-xs font-semibold text-emerald-800/80 block uppercase tracking-wider font-mono">
+                      <span className="text-[10px] font-bold text-emerald-400 block uppercase tracking-wider font-mono">
                         Account Status
                       </span>
-                      <span className="text-sm font-bold text-emerald-950 flex items-center gap-1.5 mt-0.5">
+                      <span className="text-sm font-bold text-emerald-200 flex items-center gap-2 mt-0.5">
                         <span className="relative flex h-2 w-2">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -222,10 +222,10 @@ export default function ProfilePanel({
                       </span>
                     </div>
                     <div className="text-right">
-                      <span className="text-xs font-semibold text-emerald-800/80 block uppercase tracking-wider font-mono">
+                      <span className="text-[10px] font-bold text-emerald-400 block uppercase tracking-wider font-mono">
                         Role Tier
                       </span>
-                      <span className="text-xs font-bold bg-emerald-600 text-white px-2.5 py-0.5 rounded-full capitalize block mt-0.5">
+                      <span className="text-xs font-bold bg-emerald-500 text-slate-950 px-2.5 py-0.5 rounded-full capitalize block mt-0.5">
                         {currentUser.role || 'User'}
                       </span>
                     </div>
@@ -233,21 +233,21 @@ export default function ProfilePanel({
 
                   {/* Stats Counter Grid */}
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-gray-50/50 border border-gray-100 rounded-2xl p-3 text-center">
-                      <Heart className="w-4 h-4 text-rose-500 mx-auto mb-1" />
-                      <span className="text-lg font-bold text-gray-900 font-mono block">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 text-center">
+                      <Heart className="w-4 h-4 text-rose-400 mx-auto mb-1" />
+                      <span className="text-xl font-bold text-white font-mono block">
                         {currentUser.favorites?.length || 0}
                       </span>
-                      <span className="text-[10px] text-gray-400 font-semibold uppercase font-mono">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase font-mono">
                         Bookmarks
                       </span>
                     </div>
-                    <div className="bg-gray-50/50 border border-gray-100 rounded-2xl p-3 text-center">
-                      <Activity className="w-4 h-4 text-emerald-600 mx-auto mb-1" />
-                      <span className="text-lg font-bold text-gray-900 font-mono block">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 text-center">
+                      <Activity className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
+                      <span className="text-xl font-bold text-white font-mono block">
                         {userFeedbacks.length}
                       </span>
-                      <span className="text-[10px] text-gray-400 font-semibold uppercase font-mono">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase font-mono">
                         Feedbacks
                       </span>
                     </div>
@@ -257,40 +257,40 @@ export default function ProfilePanel({
                   <div className="space-y-2 pt-2">
                     <button
                       onClick={() => setActiveTab('edit')}
-                      className="w-full flex items-center justify-between p-3.5 rounded-xl border border-gray-100 hover:border-emerald-200 hover:bg-emerald-50/10 text-gray-700 text-sm font-semibold transition-all cursor-pointer group"
+                      className="w-full flex items-center justify-between p-3.5 rounded-xl border border-white/10 bg-white/5 hover:border-emerald-500/40 hover:bg-emerald-500/10 text-slate-200 text-sm font-semibold transition-all cursor-pointer group"
                     >
                       <span className="flex items-center gap-2.5">
-                        <Edit3 className="w-4 h-4 text-gray-400 group-hover:text-emerald-600 transition-colors" />
+                        <Edit3 className="w-4 h-4 text-slate-400 group-hover:text-emerald-400 transition-colors" />
                         Edit Profile details
                       </span>
-                      <span className="text-xs text-gray-400 font-semibold group-hover:text-emerald-600 transition-colors">→</span>
+                      <span className="text-xs text-slate-400 font-semibold group-hover:text-emerald-400 transition-colors">→</span>
                     </button>
 
                     <button
                       onClick={() => setActiveTab('feedback')}
-                      className="w-full flex items-center justify-between p-3.5 rounded-xl border border-gray-100 hover:border-emerald-200 hover:bg-emerald-50/10 text-gray-700 text-sm font-semibold transition-all cursor-pointer group"
+                      className="w-full flex items-center justify-between p-3.5 rounded-xl border border-white/10 bg-white/5 hover:border-emerald-500/40 hover:bg-emerald-500/10 text-slate-200 text-sm font-semibold transition-all cursor-pointer group"
                     >
                       <span className="flex items-center gap-2.5">
-                        <MessageSquare className="w-4 h-4 text-gray-400 group-hover:text-emerald-600 transition-colors" />
+                        <MessageSquare className="w-4 h-4 text-slate-400 group-hover:text-emerald-400 transition-colors" />
                         Community Feedbacks ({feedbacks.length})
                       </span>
-                      <span className="text-xs text-gray-400 font-semibold group-hover:text-emerald-600 transition-colors">→</span>
+                      <span className="text-xs text-slate-400 font-semibold group-hover:text-emerald-400 transition-colors">→</span>
                     </button>
 
                     <button
                       onClick={() => setActiveTab('settings')}
-                      className="w-full flex items-center justify-between p-3.5 rounded-xl border border-gray-100 hover:border-emerald-200 hover:bg-emerald-50/10 text-gray-700 text-sm font-semibold transition-all cursor-pointer group"
+                      className="w-full flex items-center justify-between p-3.5 rounded-xl border border-white/10 bg-white/5 hover:border-emerald-500/40 hover:bg-emerald-500/10 text-slate-200 text-sm font-semibold transition-all cursor-pointer group"
                     >
                       <span className="flex items-center gap-2.5">
-                        <Settings className="w-4 h-4 text-gray-400 group-hover:text-emerald-600 transition-colors" />
+                        <Settings className="w-4 h-4 text-slate-400 group-hover:text-emerald-400 transition-colors" />
                         Account Preferences
                       </span>
-                      <span className="text-xs text-gray-400 font-semibold group-hover:text-emerald-600 transition-colors">→</span>
+                      <span className="text-xs text-slate-400 font-semibold group-hover:text-emerald-400 transition-colors">→</span>
                     </button>
                   </div>
 
                   {/* Divider */}
-                  <div className="h-px bg-gray-150 my-2" />
+                  <div className="h-px bg-white/10 my-2" />
 
                   {/* Logout Button */}
                   <button
@@ -298,7 +298,7 @@ export default function ProfilePanel({
                       onLogout();
                       onClose();
                     }}
-                    className="w-full flex items-center justify-center gap-2 p-3.5 rounded-xl bg-red-50 hover:bg-red-100/80 text-red-700 text-sm font-bold transition-all cursor-pointer"
+                    className="w-full flex items-center justify-center gap-2 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 text-rose-300 text-sm font-bold transition-all cursor-pointer"
                   >
                     <LogOut className="w-4 h-4" />
                     Logout from Account
@@ -312,7 +312,7 @@ export default function ProfilePanel({
                   
                   {/* Preset Avatar Selection */}
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-700 uppercase tracking-wider font-mono">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">
                       Choose Profile Picture Presets
                     </label>
                     <div className="grid grid-cols-6 gap-2">
@@ -322,13 +322,13 @@ export default function ProfilePanel({
                           type="button"
                           onClick={() => setEditAvatarUrl(url)}
                           className={`relative rounded-full overflow-hidden aspect-square border-2 transition-all cursor-pointer ${
-                            editAvatarUrl === url ? 'border-emerald-600 ring-2 ring-emerald-100 scale-105' : 'border-gray-200 hover:border-gray-400'
+                            editAvatarUrl === url ? 'border-emerald-400 ring-2 ring-emerald-400/30 scale-105' : 'border-white/10 hover:border-white/30'
                           }`}
                         >
                           <img src={url} alt={`Preset ${idx + 1}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                           {editAvatarUrl === url && (
-                            <div className="absolute inset-0 bg-emerald-600/30 flex items-center justify-center">
-                              <Check className="w-4 h-4 text-white font-bold" />
+                            <div className="absolute inset-0 bg-emerald-500/40 flex items-center justify-center">
+                              <Check className="w-4 h-4 text-slate-950 font-extrabold" />
                             </div>
                           )}
                         </button>
@@ -338,7 +338,7 @@ export default function ProfilePanel({
 
                   {/* Avatar URL input */}
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-gray-700 uppercase tracking-wider font-mono">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">
                       Or Custom Image URL
                     </label>
                     <input
@@ -346,31 +346,31 @@ export default function ProfilePanel({
                       value={editAvatarUrl}
                       onChange={(e) => setEditAvatarUrl(e.target.value)}
                       placeholder="https://example.com/photo.jpg"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2 px-3.5 text-sm outline-none focus:bg-white focus:border-emerald-500 transition-colors"
+                      className="w-full bg-slate-900 border border-white/10 rounded-xl py-2 px-3.5 text-sm text-slate-200 outline-none focus:border-emerald-500 transition-colors"
                     />
                   </div>
 
                   {/* Display Name Input */}
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-gray-700 uppercase tracking-wider font-mono">
-                      Full Display Name <span className="text-red-500">*</span>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">
+                      Full Display Name <span className="text-rose-400">*</span>
                     </label>
                     <div className="relative">
-                      <User className="absolute left-3 w-4 h-4 text-gray-400 top-3" />
+                      <User className="absolute left-3 w-4 h-4 text-slate-500 top-3" />
                       <input
                         type="text"
                         required
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
                         placeholder="John Doe"
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 pl-9 pr-4 text-sm outline-none focus:bg-white focus:border-emerald-500 transition-colors"
+                        className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 pl-9 pr-4 text-sm text-slate-200 outline-none focus:border-emerald-500 transition-colors"
                       />
                     </div>
                   </div>
 
                   {/* Profile Bio Input */}
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-gray-700 uppercase tracking-wider font-mono">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">
                       Short Bio / Tagline
                     </label>
                     <textarea
@@ -378,21 +378,21 @@ export default function ProfilePanel({
                       onChange={(e) => setEditBio(e.target.value)}
                       placeholder="Tell us about yourself..."
                       rows={3}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2 px-3 text-sm outline-none focus:bg-white focus:border-emerald-500 transition-colors resize-none"
+                      className="w-full bg-slate-900 border border-white/10 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-emerald-500 transition-colors resize-none"
                     />
                   </div>
 
                   {/* Save Status message */}
                   {saveStatus === 'success' && (
-                    <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-2">
-                      <Check className="w-4 h-4 text-emerald-600" />
+                    <div className="p-3 bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 rounded-xl text-xs flex items-center gap-2">
+                      <Check className="w-4 h-4 text-emerald-400" />
                       Changes saved permanently to database!
                     </div>
                   )}
 
                   {saveStatus === 'error' && (
-                    <div className="p-3 bg-red-50 border border-red-200 text-red-800 rounded-xl text-xs flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 text-red-600" />
+                    <div className="p-3 bg-rose-950/40 border border-rose-500/30 text-rose-300 rounded-xl text-xs flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-rose-400" />
                       Failed to save changes. Please try again.
                     </div>
                   )}
@@ -402,14 +402,14 @@ export default function ProfilePanel({
                     <button
                       type="button"
                       onClick={() => setActiveTab('main')}
-                      className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-2.5 rounded-xl text-sm transition-colors cursor-pointer"
+                      className="flex-1 border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 font-semibold py-2.5 rounded-xl text-sm transition-colors cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isSaving || !editName.trim()}
-                      className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                      className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-50 text-slate-950 font-bold py-2.5 rounded-xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-emerald-500/20"
                     >
                       {isSaving ? (
                         <>
@@ -418,7 +418,7 @@ export default function ProfilePanel({
                         </>
                       ) : (
                         <>
-                          <Save className="w-4 h-4" />
+                          <Save className="w-4 h-4 stroke-[2.5]" />
                           Save Profile
                         </>
                       )}
@@ -430,14 +430,14 @@ export default function ProfilePanel({
               {/* TAB 3: USER FEEDBACKS LIST */}
               {activeTab === 'feedback' && (
                 <div className="space-y-4 animate-fade-in">
-                  <div className="flex items-center justify-between gap-2 bg-gray-100 p-1 rounded-xl">
+                  <div className="flex items-center justify-between gap-2 bg-slate-900 p-1 rounded-xl border border-white/10">
                     <button
                       type="button"
                       onClick={() => setFeedbackFilter('all')}
                       className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                         feedbackFilter === 'all'
-                          ? 'bg-white text-emerald-800 shadow-xs'
-                          : 'text-gray-600 hover:text-gray-900'
+                          ? 'bg-emerald-500 text-slate-950 shadow-md'
+                          : 'text-slate-400 hover:text-white'
                       }`}
                     >
                       All Feedback ({feedbacks.length})
@@ -447,55 +447,55 @@ export default function ProfilePanel({
                       onClick={() => setFeedbackFilter('mine')}
                       className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                         feedbackFilter === 'mine'
-                          ? 'bg-white text-emerald-800 shadow-xs'
-                          : 'text-gray-600 hover:text-gray-900'
+                          ? 'bg-emerald-500 text-slate-950 shadow-md'
+                          : 'text-slate-400 hover:text-white'
                       }`}
                     >
                       My Feedback ({userFeedbacks.length})
                     </button>
                   </div>
 
-                  <p className="text-xs text-gray-500 font-medium">
+                  <p className="text-xs text-slate-400 font-medium">
                     {feedbackFilter === 'all'
                       ? "Browse all feedback submitted by the community in real-time."
                       : "Here are the feedback notes you posted to Xur."}
                   </p>
 
                   {((feedbackFilter === 'all' ? feedbacks : userFeedbacks).length === 0) ? (
-                    <div className="text-center py-12 border-2 border-dashed border-gray-100 rounded-2xl">
-                      <MessageSquare className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                      <p className="text-sm font-bold text-gray-700">No feedbacks found</p>
-                      <p className="text-xs text-gray-400 mt-0.5">Use the Feedback floating badge or bottom menu to write one.</p>
+                    <div className="text-center py-12 border-2 border-dashed border-white/10 rounded-2xl">
+                      <MessageSquare className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                      <p className="text-sm font-bold text-slate-300">No feedbacks found</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Use the Feedback floating badge or bottom menu to write one.</p>
                     </div>
                   ) : (
-                    <div className="space-y-3 max-h-[450px] overflow-y-auto pr-2">
+                    <div className="space-y-3 max-h-[450px] overflow-y-auto pr-2 scrollbar-none">
                       {(feedbackFilter === 'all' ? feedbacks : userFeedbacks).map((fb) => (
-                        <div key={fb.id} className="p-4 bg-gray-50/80 rounded-2xl border border-gray-100 flex flex-col gap-2 hover:border-gray-200 transition-all">
+                        <div key={fb.id} className="p-4 bg-white/5 rounded-2xl border border-white/10 flex flex-col gap-2 hover:border-emerald-500/30 transition-all">
                           <div className="flex justify-between items-start gap-2">
                             <div>
-                              <span className="font-bold text-xs text-gray-900 block">
+                              <span className="font-bold text-xs text-white block">
                                 {fb.username || "Guest Listener"}
                               </span>
                               <span className={`inline-block text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full mt-1 ${
-                                fb.category === 'bug' ? 'bg-red-50 text-red-700 border border-red-100' :
-                                fb.category === 'suggestion' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
-                                fb.category === 'praise' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
-                                'bg-gray-50 text-gray-700 border border-gray-200'
+                                fb.category === 'bug' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' :
+                                fb.category === 'suggestion' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+                                fb.category === 'praise' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                                'bg-white/10 text-slate-300 border border-white/10'
                               }`}>
                                 {fb.category}
                               </span>
                             </div>
-                            <span className="text-[10px] text-gray-400 font-mono shrink-0">
+                            <span className="text-[10px] text-slate-500 font-mono shrink-0">
                               {new Date(fb.createdAt).toLocaleDateString()}
                             </span>
                           </div>
                           
-                          <p className="text-xs sm:text-sm text-gray-800 leading-relaxed italic bg-white p-2.5 rounded-xl border border-gray-100">
+                          <p className="text-xs sm:text-sm text-slate-200 leading-relaxed italic bg-slate-900/80 p-2.5 rounded-xl border border-white/5">
                             "{fb.message}"
                           </p>
 
                           {fb.songTitle && (
-                            <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50/50 px-2 py-0.5 rounded-md inline-block self-start border border-emerald-100/50">
+                            <span className="text-[10px] text-emerald-300 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-md inline-block self-start border border-emerald-500/20">
                               🎵 Linked Song: {fb.songTitle}
                             </span>
                           )}
@@ -512,16 +512,16 @@ export default function ProfilePanel({
                   
                   {/* Category: Communication */}
                   <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest font-mono border-b border-gray-100 pb-1.5">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono border-b border-white/10 pb-1.5">
                       Communications
                     </h4>
                     
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5 pr-2">
-                        <span className="text-sm font-semibold text-gray-800 block">
+                        <span className="text-sm font-semibold text-slate-200 block">
                           Email Notifications
                         </span>
-                        <span className="text-xs text-gray-400 block">
+                        <span className="text-xs text-slate-400 block">
                           Receive weekly reports, contributions alerts, and status changes.
                         </span>
                       </div>
@@ -529,10 +529,10 @@ export default function ProfilePanel({
                         type="button"
                         onClick={() => setEmailNotifications(!emailNotifications)}
                         className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                          emailNotifications ? 'bg-emerald-600' : 'bg-gray-250'
+                          emailNotifications ? 'bg-emerald-500' : 'bg-slate-800'
                         }`}
                       >
-                        <span className={`w-4 h-4 rounded-full bg-white absolute top-1 left-1 transition-transform ${
+                        <span className={`w-4 h-4 rounded-full bg-slate-950 absolute top-1 left-1 transition-transform ${
                           emailNotifications ? 'translate-x-5' : 'translate-x-0'
                         }`} />
                       </button>
@@ -540,10 +540,10 @@ export default function ProfilePanel({
 
                     <div className="flex items-center justify-between pt-1">
                       <div className="space-y-0.5 pr-2">
-                        <span className="text-sm font-semibold text-gray-800 block">
+                        <span className="text-sm font-semibold text-slate-200 block">
                           Community Marketing
                         </span>
-                        <span className="text-xs text-gray-400 block">
+                        <span className="text-xs text-slate-400 block">
                           Receive alerts for regional translation workshops and releases.
                         </span>
                       </div>
@@ -551,10 +551,10 @@ export default function ProfilePanel({
                         type="button"
                         onClick={() => setMarketingEmails(!marketingEmails)}
                         className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                          marketingEmails ? 'bg-emerald-600' : 'bg-gray-250'
+                          marketingEmails ? 'bg-emerald-500' : 'bg-slate-800'
                         }`}
                       >
-                        <span className={`w-4 h-4 rounded-full bg-white absolute top-1 left-1 transition-transform ${
+                        <span className={`w-4 h-4 rounded-full bg-slate-950 absolute top-1 left-1 transition-transform ${
                           marketingEmails ? 'translate-x-5' : 'translate-x-0'
                         }`} />
                       </button>
@@ -563,12 +563,12 @@ export default function ProfilePanel({
 
                   {/* Category: Privacy */}
                   <div className="space-y-3 pt-2">
-                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest font-mono border-b border-gray-100 pb-1.5">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono border-b border-white/10 pb-1.5">
                       Privacy Preferences
                     </h4>
 
                     <div className="space-y-2">
-                      <span className="text-sm font-semibold text-gray-800 block">
+                      <span className="text-sm font-semibold text-slate-200 block">
                         Profile Visibility
                       </span>
                       <div className="grid grid-cols-2 gap-2">
@@ -577,8 +577,8 @@ export default function ProfilePanel({
                           onClick={() => setProfileVisibility('public')}
                           className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
                             profileVisibility === 'public'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                              : 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10'
                           }`}
                         >
                           Public Member
@@ -588,8 +588,8 @@ export default function ProfilePanel({
                           onClick={() => setProfileVisibility('private')}
                           className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
                             profileVisibility === 'private'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                              : 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10'
                           }`}
                         >
                           Anonymous Only
@@ -599,15 +599,15 @@ export default function ProfilePanel({
                   </div>
 
                   {/* Save setting preferences feedback */}
-                  <div className="p-4 bg-emerald-50/40 border border-emerald-100 rounded-2xl text-xs text-emerald-800 flex items-start gap-2.5">
-                    <Check className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+                  <div className="p-4 bg-emerald-950/40 border border-emerald-500/30 rounded-2xl text-xs text-emerald-300 flex items-start gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
                     <span>Preferences updated successfully! Settings are securely loaded & synchronised on current device session.</span>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => setActiveTab('main')}
-                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-sm transition-colors text-center block cursor-pointer"
+                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold py-2.5 rounded-xl text-sm transition-all text-center block cursor-pointer shadow-md shadow-emerald-500/20"
                   >
                     Done Settings
                   </button>

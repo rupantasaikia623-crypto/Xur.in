@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Song } from '../types';
-import { MessageSquarePlus, Languages, FileText, Music4 } from 'lucide-react';
+import { MessageSquarePlus, Languages, FileText, Music4, Sparkles } from 'lucide-react';
 
 interface LyricsDisplayProps {
   song: Song;
@@ -31,33 +31,33 @@ export default function LyricsDisplay({ song, onSelectLine, selectedLine }: Lyri
   const hasTranslation = !!song.translation && song.translation.trim().length > 0;
 
   return (
-    <div className="bg-white border border-gray-100 rounded-3xl p-5 sm:p-7 shadow-xs">
+    <div className="bg-[#0d121f]/80 border border-white/10 rounded-3xl p-5 sm:p-7 shadow-2xl backdrop-blur-xl">
       {/* Tab Switcher */}
-      <div className="flex border-b border-gray-100 pb-4 mb-6 gap-2">
+      <div className="flex border-b border-white/10 pb-4 mb-6 gap-2 overflow-x-auto scrollbar-none">
         <button
           onClick={() => setActiveTab('lyrics')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
             activeTab === 'lyrics'
-              ? 'bg-emerald-50 text-emerald-700 font-semibold shadow-xs'
-              : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-lg shadow-emerald-500/10'
+              : 'text-slate-400 hover:bg-white/5 hover:text-white border border-transparent'
           }`}
           id="lyrics-tab-main"
         >
-          <FileText className="w-4 h-4" />
+          <FileText className="w-4 h-4 text-emerald-400" />
           Lyrics
         </button>
 
         {hasTransliteration && (
           <button
             onClick={() => setActiveTab('transliteration')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
               activeTab === 'transliteration'
-                ? 'bg-emerald-50 text-emerald-700 font-semibold shadow-xs'
-                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-lg shadow-emerald-500/10'
+                : 'text-slate-400 hover:bg-white/5 hover:text-white border border-transparent'
             }`}
             id="lyrics-tab-translit"
           >
-            <Music4 className="w-4 h-4" />
+            <Music4 className="w-4 h-4 text-emerald-400" />
             Transliteration
           </button>
         )}
@@ -65,30 +65,30 @@ export default function LyricsDisplay({ song, onSelectLine, selectedLine }: Lyri
         {hasTranslation && (
           <button
             onClick={() => setActiveTab('translation')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
               activeTab === 'translation'
-                ? 'bg-emerald-50 text-emerald-700 font-semibold shadow-xs'
-                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-lg shadow-emerald-500/10'
+                : 'text-slate-400 hover:bg-white/5 hover:text-white border border-transparent'
             }`}
             id="lyrics-tab-translation"
           >
-            <Languages className="w-4 h-4" />
+            <Languages className="w-4 h-4 text-emerald-400" />
             Translation
           </button>
         )}
       </div>
 
       {/* Lyrics body */}
-      <div className="space-y-1 font-sans text-gray-800 leading-relaxed text-sm sm:text-base selection:bg-emerald-100 max-h-[600px] overflow-y-auto pr-2">
+      <div className="space-y-1.5 font-sans text-slate-200 leading-relaxed text-base sm:text-lg selection:bg-emerald-500/30 selection:text-emerald-200 max-h-[650px] overflow-y-auto pr-2 scrollbar-none">
         {lines.length === 0 ? (
-          <p className="text-gray-400 italic text-center py-10 text-sm">
+          <p className="text-slate-500 italic text-center py-12 text-sm">
             No content available for this tab.
           </p>
         ) : (
           lines.map((line, idx) => {
             const isBlank = line.trim().length === 0;
             const isHighlighted = selectedLine === line.trim() && !isBlank;
-            const isChorusHeader = line.toLowerCase().startsWith('[chorus') || line.toLowerCase().startsWith('[verse');
+            const isChorusHeader = line.toLowerCase().startsWith('[chorus') || line.toLowerCase().startsWith('[verse') || line.toLowerCase().startsWith('[bridge');
 
             if (isBlank) {
               return <div key={idx} className="h-4" />;
@@ -98,8 +98,9 @@ export default function LyricsDisplay({ song, onSelectLine, selectedLine }: Lyri
               return (
                 <div 
                   key={idx} 
-                  className="font-mono text-xs font-semibold tracking-wider text-emerald-600/80 uppercase pt-3 pb-1"
+                  className="font-mono text-xs font-bold tracking-wider text-emerald-400 uppercase pt-4 pb-1.5 flex items-center gap-2"
                 >
+                  <Sparkles className="w-3.5 h-3.5" />
                   {line}
                 </div>
               );
@@ -109,18 +110,18 @@ export default function LyricsDisplay({ song, onSelectLine, selectedLine }: Lyri
               <div
                 key={idx}
                 onClick={() => onSelectLine(line.trim())}
-                className={`group flex items-center justify-between gap-4 py-1.5 px-3 rounded-lg transition-all cursor-pointer ${
+                className={`group flex items-center justify-between gap-4 py-2 px-3.5 rounded-xl transition-all cursor-pointer ${
                   isHighlighted
-                    ? 'bg-emerald-50 border-l-4 border-emerald-500 text-emerald-900 font-medium pl-2.5'
-                    : 'hover:bg-slate-50 border-l-4 border-transparent text-gray-700 hover:text-gray-950'
+                    ? 'bg-emerald-500/20 border-l-4 border-emerald-400 text-emerald-200 font-semibold pl-3.5 shadow-md shadow-emerald-500/5'
+                    : 'hover:bg-white/5 border-l-4 border-transparent text-slate-300 hover:text-white'
                 }`}
               >
-                <span className="break-words select-text pr-4">{line}</span>
-                <span className={`shrink-0 transition-opacity flex items-center text-xs text-emerald-600 gap-1 font-mono font-medium ${
+                <span className="break-words select-text pr-4 tracking-wide">{line}</span>
+                <span className={`shrink-0 transition-opacity flex items-center text-xs text-emerald-400 gap-1.5 font-mono font-medium ${
                   isHighlighted ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                 }`}>
                   <MessageSquarePlus className="w-4 h-4 shrink-0" />
-                  <span className="hidden sm:inline">Discuss</span>
+                  <span className="hidden sm:inline">Discuss Line</span>
                 </span>
               </div>
             );
@@ -128,9 +129,10 @@ export default function LyricsDisplay({ song, onSelectLine, selectedLine }: Lyri
         )}
       </div>
 
-      <div className="border-t border-gray-50 pt-4 mt-6 text-xs text-gray-400 text-center">
-        💡 <span className="font-medium">Tip:</span> Hover or tap on any line to select & discuss its specific meaning or translation with the community!
+      <div className="border-t border-white/10 pt-4 mt-6 text-xs text-slate-400 text-center flex items-center justify-center gap-1.5">
+        <span>💡</span> <span className="font-medium text-slate-300">Tip:</span> Click or tap any line to highlight and discuss its meaning with the community!
       </div>
     </div>
   );
 }
+

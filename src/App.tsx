@@ -1020,7 +1020,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 flex flex-col font-sans selection:bg-emerald-100 antialiased text-gray-800">
+    <div className="min-h-screen bg-[#070a12] text-slate-100 flex flex-col font-sans selection:bg-emerald-500/30 selection:text-white antialiased relative overflow-x-hidden">
       
       {/* Top Navigation bar */}
       <Navbar
@@ -1056,7 +1056,7 @@ export default function App() {
               <DisclaimerBanner />
 
               {/* Jumbotron / Hero Section */}
-              <div className="bg-gradient-to-br from-emerald-900 via-teal-950 to-slate-950 text-white rounded-3xl p-6 sm:p-10 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
+              <div className="bg-gradient-to-br from-emerald-950/80 via-teal-950/60 to-slate-950/80 backdrop-blur-2xl border border-white/10 text-white rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
                 <div className="space-y-4 max-w-2xl z-10 text-center sm:text-left flex-1">
                   <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
                     <Sparkles className="w-3.5 h-3.5" />
@@ -1072,39 +1072,39 @@ export default function App() {
                 <div className="shrink-0 flex gap-3 z-10">
                   <button
                     onClick={() => setCurrentPage('add-song')}
-                    className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm px-5 py-3 rounded-xl transition-all cursor-pointer shadow-md shadow-emerald-500/15"
+                    className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-xs sm:text-sm px-5 py-3 rounded-xl transition-all cursor-pointer shadow-lg shadow-emerald-500/20 active:scale-95"
                   >
                     <Plus className="w-4 h-4" />
                     Submit Song
                   </button>
                 </div>
                 {/* Visual glow background */}
-                <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-teal-500/10 blur-3xl rounded-full" />
+                <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-teal-500/10 blur-3xl rounded-full pointer-events-none" />
               </div>
 
               {/* Separate Search Bar Section */}
-              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="bg-[#0d1322]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="space-y-1">
-                  <h3 className="font-display font-bold text-sm text-gray-950 tracking-tight">
+                  <h3 className="font-display font-bold text-sm text-white tracking-tight">
                     Looking for a specific lyric?
                   </h3>
-                  <p className="text-xs text-gray-450 leading-none">
+                  <p className="text-xs text-slate-400 leading-none">
                     Search by titles, artists, or any word in the lyrics, translations, and transliterations.
                   </p>
                 </div>
                 <div className="relative w-full md:max-w-md shrink-0">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search songs, artists, or specific lines..."
-                    className="w-full bg-gray-50 hover:bg-gray-100/70 focus:bg-white border border-gray-150 focus:border-emerald-500 rounded-xl py-3 pl-11 pr-10 text-xs outline-none transition-all shadow-2xs text-gray-800 placeholder-gray-400"
+                    className="w-full bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-white/10 focus:border-emerald-500/50 rounded-xl py-3 pl-11 pr-10 text-xs outline-none transition-all shadow-inner text-white placeholder-slate-400"
                   />
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery('')}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-450 hover:text-gray-700 transition-colors cursor-pointer"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -1117,33 +1117,33 @@ export default function App() {
                 
                 {/* Left Columns: Songs Catalog & Sort */}
                 <div className="lg:col-span-3 space-y-5">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-gray-100 pb-3 gap-3">
-                    <h2 className="font-display font-semibold text-lg sm:text-xl text-gray-900 tracking-tight">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-white/10 pb-3 gap-3">
+                    <h2 className="font-display font-semibold text-lg sm:text-xl text-white tracking-tight">
                       Explore Song Library
                     </h2>
                     
                     {/* Catalog sorting buttons */}
-                    <div className="flex bg-gray-100 p-1 rounded-lg text-xs font-semibold self-stretch sm:self-auto">
+                    <div className="flex bg-white/5 border border-white/10 p-1 rounded-xl text-xs font-semibold self-stretch sm:self-auto">
                       <button
                         onClick={() => setSortMethod('recent')}
-                        className={`px-3 py-1.5 rounded-md grow sm:grow-0 transition-all ${
-                          sortMethod === 'recent' ? 'bg-white text-emerald-700 shadow-xs font-bold' : 'text-gray-500 hover:text-gray-900'
+                        className={`px-3 py-1.5 rounded-lg grow sm:grow-0 transition-all cursor-pointer ${
+                          sortMethod === 'recent' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold shadow-xs' : 'text-slate-400 hover:text-white'
                         }`}
                       >
                         Recently Added
                       </button>
                       <button
                         onClick={() => setSortMethod('trending')}
-                        className={`px-3 py-1.5 rounded-md grow sm:grow-0 transition-all ${
-                          sortMethod === 'trending' ? 'bg-white text-emerald-700 shadow-xs font-bold' : 'text-gray-500 hover:text-gray-900'
+                        className={`px-3 py-1.5 rounded-lg grow sm:grow-0 transition-all cursor-pointer ${
+                          sortMethod === 'trending' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold shadow-xs' : 'text-slate-400 hover:text-white'
                         }`}
                       >
                         Trending
                       </button>
                       <button
                         onClick={() => setSortMethod('discussed')}
-                        className={`px-3 py-1.5 rounded-md grow sm:grow-0 transition-all ${
-                          sortMethod === 'discussed' ? 'bg-white text-emerald-700 shadow-xs font-bold' : 'text-gray-500 hover:text-gray-900'
+                        className={`px-3 py-1.5 rounded-lg grow sm:grow-0 transition-all cursor-pointer ${
+                          sortMethod === 'discussed' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold shadow-xs' : 'text-slate-400 hover:text-white'
                         }`}
                       >
                         Most Discussed
@@ -1153,7 +1153,7 @@ export default function App() {
 
                   {/* Songs grid */}
                   {filteredSongs.length === 0 ? (
-                    <div className="bg-white border border-gray-100 rounded-2xl p-12 text-center text-gray-400">
+                    <div className="bg-[#0d1322]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-12 text-center text-slate-400">
                       No songs found matching your current query or filters.
                     </div>
                   ) : (
@@ -1173,29 +1173,29 @@ export default function App() {
                 {/* Right Column: Platform Stats & Info sidebar */}
                 <div className="space-y-6">
                   {/* Real-Time Platform Activity Stream */}
-                  <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/[0.015] rounded-full blur-xl pointer-events-none" />
+                  <div className="bg-[#0d1322]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl pointer-events-none" />
                     
-                    <div className="flex items-center justify-between border-b border-gray-100 pb-2.5 mb-3">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2.5 mb-3">
                       <div>
-                        <h3 className="font-display font-bold text-sm text-gray-900 tracking-tight flex items-center gap-1.5">
-                          <Activity className="w-4 h-4 text-emerald-500" />
+                        <h3 className="font-display font-bold text-sm text-white tracking-tight flex items-center gap-1.5">
+                          <Activity className="w-4 h-4 text-emerald-400" />
                           Recent Platform Activity
                         </h3>
-                        <p className="text-[9px] text-gray-400 mt-0.5">Real-time update channel active</p>
+                        <p className="text-[9px] text-slate-400 mt-0.5">Real-time update channel active</p>
                       </div>
-                      <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full shrink-0">
+                      <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full shrink-0">
                         <span className="relative flex h-1.5 w-1.5">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
                         </span>
-                        <span className="text-[9px] text-emerald-700 font-bold uppercase tracking-wider">Live</span>
+                        <span className="text-[9px] text-emerald-300 font-bold uppercase tracking-wider">Live</span>
                       </div>
                     </div>
                     
                     {activitiesLoading ? (
                       <div className="flex justify-center py-8">
-                        <Loader2 className="w-5 h-5 animate-spin text-emerald-500" />
+                        <Loader2 className="w-5 h-5 animate-spin text-emerald-400" />
                       </div>
                     ) : (
                       <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1">
@@ -1218,26 +1218,26 @@ export default function App() {
                                 }}
                                 className={`group p-2.5 rounded-xl border border-transparent transition-all text-xs relative ${
                                   hasLink 
-                                    ? 'hover:bg-slate-50/70 hover:border-slate-100 cursor-pointer active:scale-98' 
-                                    : 'hover:bg-slate-50/30'
+                                    ? 'hover:bg-white/5 hover:border-white/10 cursor-pointer active:scale-98' 
+                                    : 'hover:bg-white/5'
                                 }`}
                               >
                                 <div className="flex justify-between items-start gap-2">
                                   <div className="flex items-center gap-1.5 min-w-0">
-                                    <span className="font-bold text-gray-900 truncate">{act.username}</span>
+                                    <span className="font-bold text-white truncate">{act.username}</span>
                                     <span className={`text-[8px] font-bold uppercase px-1.5 py-0.2 rounded-md border shrink-0 flex items-center gap-0.5 ${meta.badgeClass}`}>
                                       {meta.icon}
                                       {meta.labelText}
                                     </span>
                                   </div>
-                                  <span className="text-[9px] text-gray-400 shrink-0 font-mono">
+                                  <span className="text-[9px] text-slate-400 shrink-0 font-mono">
                                     {new Date(act.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                   </span>
                                 </div>
-                                <p className="text-gray-650 mt-1 leading-relaxed">{act.details}</p>
+                                <p className="text-slate-300 mt-1 leading-relaxed">{act.details}</p>
                                 
                                 {hasLink && (
-                                  <div className="mt-1.5 flex items-center gap-1 text-[9px] text-emerald-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <div className="mt-1.5 flex items-center gap-1 text-[9px] text-emerald-400 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
                                     <span>View song translation</span>
                                     <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                                   </div>
@@ -1251,19 +1251,19 @@ export default function App() {
                   </div>
 
                   {/* Webpage Feedback Card */}
-                  <div className="bg-gradient-to-br from-emerald-500/[0.04] via-white to-teal-500/[0.02] border border-emerald-200/80 rounded-2xl p-5 shadow-xs relative overflow-hidden ring-4 ring-emerald-500/[0.01]">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
+                  <div className="bg-[#0d1322]/80 backdrop-blur-xl border border-emerald-500/20 rounded-2xl p-5 shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
                     
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-100/50 pb-3 mb-3 relative z-10">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3 mb-3 relative z-10">
                       <div>
-                        <h3 className="font-display font-bold text-sm text-slate-900 tracking-tight flex items-center gap-1.5">
+                        <h3 className="font-display font-bold text-sm text-white tracking-tight flex items-center gap-1.5">
                           <span className="flex h-2 w-2 relative">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
                           </span>
                           Website Feedback
                         </h3>
-                        <p className="text-[10px] text-gray-500 mt-0.5">Let's build Xur(সুৰ) together</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Let's build Xur(সুৰ) together</p>
                       </div>
                       <div className="flex items-center gap-1.5 self-start sm:self-center">
                         <button
@@ -1271,9 +1271,9 @@ export default function App() {
                             setFeedbackTab('write');
                             setShowFeedbackModal(true);
                           }}
-                          className="text-[10px] text-white font-bold bg-emerald-500 hover:bg-emerald-600 px-3 py-1.5 rounded-lg transition-all cursor-pointer shadow-xs active:scale-95 flex items-center gap-1 shrink-0"
+                          className="text-[10px] text-slate-950 font-bold bg-emerald-400 hover:bg-emerald-300 px-3 py-1.5 rounded-lg transition-all cursor-pointer shadow-md active:scale-95 flex items-center gap-1 shrink-0"
                         >
-                          <Star className="w-3 h-3 fill-white" />
+                          <Star className="w-3 h-3 fill-slate-950" />
                           Give Feedback
                         </button>
                         <button
@@ -1281,7 +1281,7 @@ export default function App() {
                             setFeedbackTab('view');
                             setShowFeedbackModal(true);
                           }}
-                          className="text-[10px] text-emerald-700 font-bold bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg transition-all cursor-pointer border border-emerald-200 shrink-0"
+                          className="text-[10px] text-emerald-300 font-bold bg-emerald-500/10 hover:bg-emerald-500/20 px-3 py-1.5 rounded-lg transition-all cursor-pointer border border-emerald-500/20 shrink-0"
                         >
                           See All ({feedbacks.length})
                         </button>
@@ -1290,17 +1290,17 @@ export default function App() {
 
                     {feedbacksLoading ? (
                       <div className="flex justify-center py-6">
-                        <Loader2 className="w-5 h-5 animate-spin text-emerald-500" />
+                        <Loader2 className="w-5 h-5 animate-spin text-emerald-400" />
                       </div>
                     ) : feedbacks.length === 0 ? (
                       <div className="text-center py-6 relative z-10">
-                        <p className="text-xs text-gray-400">No feedback received yet.</p>
+                        <p className="text-xs text-slate-400">No feedback received yet.</p>
                         <button
                           onClick={() => {
                             setFeedbackTab('write');
                             setShowFeedbackModal(true);
                           }}
-                          className="mt-2 text-[10px] text-emerald-600 font-bold hover:underline"
+                          className="mt-2 text-[10px] text-emerald-400 font-bold hover:underline"
                         >
                           Be the first to say something!
                         </button>
@@ -1308,15 +1308,15 @@ export default function App() {
                     ) : (
                       <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1 relative z-10">
                         {feedbacks.slice(0, 5).map((fb) => (
-                          <div key={fb.id} className="text-[11px] border-b border-emerald-50/50 pb-2.5 last:border-0 last:pb-0">
+                          <div key={fb.id} className="text-[11px] border-b border-white/5 pb-2.5 last:border-0 last:pb-0">
                             <div className="flex justify-between items-start gap-1">
-                              <span className="font-bold text-gray-900 flex items-center gap-1 min-w-0">
+                              <span className="font-bold text-white flex items-center gap-1 min-w-0">
                                 <span className="truncate max-w-[100px]">{fb.username}</span>
                                 <span className={`text-[8px] px-1 py-0.2 rounded-sm font-semibold capitalize shrink-0 ${
-                                  fb.category === 'bug' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
-                                  fb.category === 'praise' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                                  fb.category === 'suggestion' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
-                                  'bg-gray-50 text-gray-600 border border-gray-100'
+                                  fb.category === 'bug' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' :
+                                  fb.category === 'praise' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                                  fb.category === 'suggestion' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+                                  'bg-slate-500/20 text-slate-300 border border-slate-500/30'
                                 }`}>
                                   {fb.category}
                                 </span>
@@ -1324,13 +1324,13 @@ export default function App() {
                               <div className="flex items-center gap-1 shrink-0">
                                 <div className="flex items-center gap-0.5 text-amber-400">
                                   {Array.from({ length: 5 }).map((_, i) => (
-                                    <Star key={i} className={`w-2 h-2 ${i < fb.rating ? 'fill-amber-400' : 'text-gray-200'}`} />
+                                    <Star key={i} className={`w-2 h-2 ${i < fb.rating ? 'fill-amber-400' : 'text-slate-600'}`} />
                                   ))}
                                 </div>
                                 {canDeleteFeedback(fb) && (
                                   <button
                                     onClick={() => handleDeleteFeedback(fb.id)}
-                                    className="p-1 text-gray-400 hover:text-rose-600 rounded-md hover:bg-rose-50/50 transition-colors cursor-pointer"
+                                    className="p-1 text-slate-400 hover:text-rose-400 rounded-md hover:bg-rose-500/10 transition-colors cursor-pointer"
                                     title="Delete feedback permanently"
                                   >
                                     <Trash2 className="w-2.5 h-2.5" />
@@ -1338,11 +1338,11 @@ export default function App() {
                                 )}
                               </div>
                             </div>
-                            <p className="text-gray-600 mt-1 leading-relaxed italic bg-white/70 p-1.5 rounded-lg border border-emerald-50/50 shadow-2xs">
+                            <p className="text-slate-300 mt-1 leading-relaxed italic bg-white/5 p-2 rounded-lg border border-white/10 shadow-inner">
                               "{fb.message}"
                             </p>
                             {fb.songTitle && (
-                              <div className="mt-1 text-[8px] text-emerald-700 bg-emerald-50/30 rounded-md px-1.5 py-0.5 inline-flex items-center gap-0.5 border border-emerald-100/40 font-semibold max-w-full">
+                              <div className="mt-1 text-[8px] text-emerald-300 bg-emerald-500/10 rounded-md px-1.5 py-0.5 inline-flex items-center gap-0.5 border border-emerald-500/20 font-semibold max-w-full">
                                 <span className="shrink-0">🎵</span>
                                 <span className="truncate max-w-[150px]">{fb.songTitle}</span>
                               </div>
@@ -1354,43 +1354,41 @@ export default function App() {
                   </div>
 
                   {/* Language Distribution */}
-                  <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs">
-                    <h3 className="font-display font-bold text-sm text-gray-900 border-b border-gray-100 pb-2 mb-3 tracking-tight">
+                  <div className="bg-[#0d1322]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl">
+                    <h3 className="font-display font-bold text-sm text-white border-b border-white/10 pb-2 mb-3 tracking-tight">
                       Supported Regions & Scripts
                     </h3>
                     <div className="space-y-2.5">
                       <div className="flex items-center justify-between text-xs font-medium">
-                        <span className="flex items-center gap-1.5 text-gray-700">
-                          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                        <span className="flex items-center gap-1.5 text-slate-200">
+                          <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
                           অসমীয়া (Assamese)
                         </span>
-                        <span className="text-gray-400">Romanized</span>
+                        <span className="text-slate-400">Romanized</span>
                       </div>
                       <div className="flex items-center justify-between text-xs font-medium">
-                        <span className="flex items-center gap-1.5 text-gray-700">
-                          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                        <span className="flex items-center gap-1.5 text-slate-200">
+                          <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
                           বাংলা (Bengali)
                         </span>
-                        <span className="text-gray-400">Translits</span>
+                        <span className="text-slate-400">Translits</span>
                       </div>
                       <div className="flex items-center justify-between text-xs font-medium">
-                        <span className="flex items-center gap-1.5 text-gray-700">
-                          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                        <span className="flex items-center gap-1.5 text-slate-200">
+                          <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
                           हिन्दी (Hindi)
                         </span>
-                        <span className="text-gray-400">Devenagari</span>
+                        <span className="text-slate-400">Devenagari</span>
                       </div>
                       <div className="flex items-center justify-between text-xs font-medium">
-                        <span className="flex items-center gap-1.5 text-gray-700">
-                          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                        <span className="flex items-center gap-1.5 text-slate-200">
+                          <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
                           English
                         </span>
-                        <span className="text-gray-400">Poetic snaps</span>
+                        <span className="text-slate-400">Poetic snaps</span>
                       </div>
                     </div>
                   </div>
-
-
 
                 </div>
 
@@ -1417,7 +1415,7 @@ export default function App() {
                   window.history.pushState({}, '', window.location.pathname);
                   handleRefreshSong(); 
                 }}
-                className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-800 bg-emerald-50 px-3.5 py-2 rounded-xl transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-300 hover:text-emerald-200 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 px-3.5 py-2 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
                 id="back-to-home-btn"
               >
                 <ArrowLeft className="w-4 h-4" />
@@ -1425,27 +1423,27 @@ export default function App() {
               </button>
 
               {/* Song Header Card */}
-              <div className="bg-white border border-gray-100 rounded-3xl p-5 sm:p-7 shadow-xs">
+              <div className="bg-[#0d1322]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-7 shadow-2xl">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-wider font-mono">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full uppercase tracking-wider font-mono">
                         <Globe2 className="w-3.5 h-3.5" />
                         {selectedSong.language}
                       </span>
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-teal-700 bg-teal-50 px-3 py-1 rounded-full uppercase tracking-wider font-mono">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-teal-300 bg-teal-500/10 border border-teal-500/20 px-3 py-1 rounded-full uppercase tracking-wider font-mono">
                         {selectedSong.genre}
                       </span>
                     </div>
 
-                    <h1 className="font-display font-bold text-2xl sm:text-3xl text-gray-950 tracking-tight leading-tight">
+                    <h1 className="font-display font-bold text-2xl sm:text-3xl text-white tracking-tight leading-tight">
                       {selectedSong.title}
                     </h1>
                     
-                    <p className="text-sm font-semibold text-gray-600">
-                      by <span className="text-emerald-600">{selectedSong.artist}</span> 
-                      {selectedSong.album && <span> • Album: <span className="font-medium text-gray-700">{selectedSong.album}</span></span>} 
-                      {selectedSong.releaseYear && <span> • Year: <span className="font-medium text-gray-700">{selectedSong.releaseYear}</span></span>}
+                    <p className="text-sm font-semibold text-slate-400">
+                      by <span className="text-emerald-400 font-bold">{selectedSong.artist}</span> 
+                      {selectedSong.album && <span> • Album: <span className="font-medium text-slate-300">{selectedSong.album}</span></span>} 
+                      {selectedSong.releaseYear && <span> • Year: <span className="font-medium text-slate-300">{selectedSong.releaseYear}</span></span>}
                     </p>
                   </div>
 
@@ -1455,8 +1453,8 @@ export default function App() {
                       onClick={handleToggleSongUpvote}
                       className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                         selectedSong.upvotedBy?.includes(currentUser?.uid || "guest-user")
-                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                          : 'bg-white text-gray-600 border-gray-100 hover:bg-gray-50'
+                          ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md font-extrabold'
+                          : 'bg-white/5 text-slate-200 border-white/10 hover:bg-white/10'
                       }`}
                       id="song-upvote-btn"
                     >
@@ -1468,8 +1466,8 @@ export default function App() {
                       onClick={handleToggleFavorite}
                       className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                         currentUser?.favorites?.includes(selectedSong.id)
-                          ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
-                          : 'bg-white text-gray-600 border-gray-100 hover:bg-gray-50'
+                          ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md font-extrabold'
+                          : 'bg-white/5 text-slate-200 border-white/10 hover:bg-white/10'
                       }`}
                       id="song-fav-btn"
                     >
@@ -1479,10 +1477,10 @@ export default function App() {
 
                     <button
                       onClick={handleShareSong}
-                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border border-gray-100 bg-white text-gray-600 hover:bg-gray-50 transition-all cursor-pointer shadow-xs"
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition-all cursor-pointer shadow-xs"
                       id="song-share-btn"
                     >
-                      <Share2 className="w-4 h-4 text-emerald-500" />
+                      <Share2 className="w-4 h-4 text-emerald-400" />
                       Share
                     </button>
 
@@ -1490,8 +1488,8 @@ export default function App() {
                       onClick={() => setIsEditingLyrics(!isEditingLyrics)}
                       className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                         isEditingLyrics
-                          ? 'bg-slate-800 text-white border-slate-800'
-                          : 'bg-emerald-50 text-emerald-800 border-emerald-100 hover:bg-emerald-100/50'
+                          ? 'bg-emerald-500 text-slate-950 border-emerald-400'
+                          : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20 hover:bg-emerald-500/20'
                       }`}
                       id="song-wiki-edit-btn"
                     >
@@ -1502,18 +1500,18 @@ export default function App() {
                     {selectedSong.hasUserSubmitted && (
                       <button
                         onClick={handleRevertToDefault}
-                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border border-rose-100 bg-rose-50 text-rose-700 hover:bg-rose-100 transition-all cursor-pointer shadow-xs"
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition-all cursor-pointer shadow-xs"
                         id="song-revert-btn"
                         title="Delete user-submitted lyrics and revert to default"
                       >
-                        <Trash2 className="w-4 h-4 text-rose-500" />
+                        <Trash2 className="w-4 h-4 text-rose-400" />
                         Revert to Default
                       </button>
                     )}
 
                     <button
                       onClick={() => setReportingSong(true)}
-                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 border border-transparent rounded-xl transition-colors cursor-pointer"
+                      className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-transparent rounded-xl transition-colors cursor-pointer"
                       title="Flag/Report lyrics accuracy"
                       id="song-report-btn"
                     >
@@ -1524,21 +1522,21 @@ export default function App() {
 
                 {/* Optional YouTube embed */}
                 {selectedSong.youtubeLink && (
-                  <div className="mt-5 pt-5 border-t border-gray-50">
-                    <div className="flex items-center gap-2 text-xs font-bold text-red-600 mb-3 uppercase tracking-wider font-mono">
+                  <div className="mt-5 pt-5 border-t border-white/10">
+                    <div className="flex items-center gap-2 text-xs font-bold text-red-400 mb-3 uppercase tracking-wider font-mono">
                       <Youtube className="w-4 h-4" />
                       Listen Along
                     </div>
                     {/* Standard YouTube safe link display / link button */}
-                    <div className="bg-slate-50 border border-gray-100 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-                      <span className="text-xs text-gray-500">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                      <span className="text-xs text-slate-300">
                         Official video or audio representation of the song is linked by the community:
                       </span>
                       <a
                         href={selectedSong.youtubeLink}
                         target="_blank"
                         referrerPolicy="no-referrer"
-                        className="bg-red-600 hover:bg-red-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors inline-flex items-center gap-2 cursor-pointer"
+                        className="bg-red-600 hover:bg-red-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors inline-flex items-center gap-2 cursor-pointer shadow-md shadow-red-600/20"
                       >
                         <Youtube className="w-4 h-4" />
                         Open on YouTube
@@ -1679,16 +1677,14 @@ export default function App() {
                     currentUser={currentUser}
                     selectedLine={selectedLine}
                     onClearSelectedLine={() => setSelectedLine(null)}
-                    onRefreshSong={handleRefreshSong}
+                    onRefreshSong={() => handleRefreshSong()}
                   />
-
                 </div>
-
               </div>
             </motion.div>
           )}
 
-          {/* PAGE 3: Submit Lyrics (Add Song) */}
+          {/* PAGE 3: Submit New Song Lyrics */}
           {currentPage === 'add-song' && (
             <motion.div
               key="add-song"
@@ -1696,56 +1692,56 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
               transition={{ duration: 0.25 }}
-              className="max-w-4xl mx-auto space-y-6"
+              className="max-w-3xl mx-auto space-y-6"
             >
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <h1 className="font-display font-bold text-xl sm:text-2xl text-gray-950 tracking-tight flex items-center gap-2">
-                  <Plus className="w-6 h-6 text-emerald-600" />
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <h1 className="font-display font-bold text-xl sm:text-2xl text-white tracking-tight flex items-center gap-2">
+                  <Plus className="w-6 h-6 text-emerald-400" />
                   Submit Song Lyrics
                 </h1>
                 <button
                   onClick={() => setCurrentPage('home')}
-                  className="text-xs font-semibold text-gray-500 hover:text-gray-900 bg-gray-100 px-3 py-1.5 rounded-lg"
+                  className="text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
               </div>
 
-              <form onSubmit={handleAddSongSubmit} className="space-y-6 bg-white border border-gray-100 rounded-3xl p-5 sm:p-8 shadow-xs">
+              <form onSubmit={handleAddSongSubmit} className="space-y-6 bg-[#0d1322]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-8 shadow-2xl">
                 {/* Basic Metadata */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Song Title *</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Song Title *</label>
                     <input
                       type="text"
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}
                       placeholder="e.g. Pratidhwani"
-                      className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-sm outline-none focus:bg-white focus:border-emerald-300 transition-all text-gray-800"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm outline-none focus:bg-white/10 focus:border-emerald-500/50 transition-all text-white placeholder-slate-500"
                       required
                       id="new-song-title"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Artist / Band *</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Artist / Band *</label>
                     <input
                       type="text"
                       value={newArtist}
                       onChange={(e) => setNewArtist(e.target.value)}
                       placeholder="e.g. Dr. Bhupen Hazarika"
-                      className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-sm outline-none focus:bg-white focus:border-emerald-300 transition-all text-gray-800"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm outline-none focus:bg-white/10 focus:border-emerald-500/50 transition-all text-white placeholder-slate-500"
                       required
                       id="new-song-artist"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Language *</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Language *</label>
                     <select
                       value={newLanguage}
                       onChange={(e) => setNewLanguage(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5 text-sm outline-none focus:bg-white focus:border-emerald-300 transition-all text-gray-800"
+                      className="w-full bg-[#0d1322] border border-white/10 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-emerald-500/50 transition-all text-white"
                       id="new-song-language"
                     >
                       <option value="Assamese">অসমীয়া (Assamese)</option>
@@ -1758,11 +1754,11 @@ export default function App() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Genre *</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Genre *</label>
                     <select
                       value={newGenre}
                       onChange={(e) => setNewGenre(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5 text-sm outline-none focus:bg-white focus:border-emerald-300 transition-all text-gray-800"
+                      className="w-full bg-[#0d1322] border border-white/10 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-emerald-500/50 transition-all text-white"
                       id="new-song-genre"
                     >
                       <option value="Folk">Folk</option>
@@ -1775,45 +1771,45 @@ export default function App() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Album / Soundtrack</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Album / Soundtrack</label>
                     <input
                       type="text"
                       value={newAlbum}
                       onChange={(e) => setNewAlbum(e.target.value)}
                       placeholder="e.g. Pratidhwani"
-                      className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-sm outline-none text-gray-800"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm outline-none text-white placeholder-slate-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Release Year</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Release Year</label>
                     <input
                       type="number"
                       value={newReleaseYear}
                       onChange={(e) => setNewReleaseYear(Number(e.target.value))}
-                      className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-sm outline-none text-gray-800"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm outline-none text-white"
                     />
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">YouTube Audio/Video Link</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">YouTube Audio/Video Link</label>
                     <input
                       type="url"
                       value={newYoutube}
                       onChange={(e) => setNewYoutube(e.target.value)}
                       placeholder="https://www.youtube.com/watch?v=..."
-                      className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-sm outline-none text-gray-800"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm outline-none text-white placeholder-slate-500"
                     />
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Tags (Comma-separated)</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Tags (Comma-separated)</label>
                     <input
                       type="text"
                       value={newTags}
                       onChange={(e) => setNewTags(e.target.value)}
                       placeholder="e.g. classic, philosophical, peaceful"
-                      className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-sm outline-none text-gray-800 font-mono text-xs"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm outline-none text-white placeholder-slate-500 font-mono text-xs"
                     />
                   </div>
                 </div>
@@ -1822,13 +1818,13 @@ export default function App() {
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Original Lyrics *</label>
+                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Original Lyrics *</label>
                       <div className="flex gap-1.5">
                         <button
                           type="button"
                           onClick={() => handleGenerateInCreator('translit')}
                           disabled={generationLoading !== null}
-                          className="text-[10px] bg-slate-900 text-white font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 hover:bg-slate-800 disabled:opacity-50"
+                          className="text-[10px] bg-white/10 hover:bg-white/15 text-white font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-white/10 disabled:opacity-50 cursor-pointer"
                         >
                           {generationLoading === 'translit' ? (
                             <Loader2 className="w-3 h-3 animate-spin" />
@@ -1841,7 +1837,7 @@ export default function App() {
                           type="button"
                           onClick={() => handleGenerateInCreator('translation')}
                           disabled={generationLoading !== null}
-                          className="text-[10px] bg-slate-900 text-white font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 hover:bg-slate-800 disabled:opacity-50"
+                          className="text-[10px] bg-white/10 hover:bg-white/15 text-white font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-white/10 disabled:opacity-50 cursor-pointer"
                         >
                           {generationLoading === 'translation' ? (
                             <Loader2 className="w-3 h-3 animate-spin" />
@@ -1856,7 +1852,7 @@ export default function App() {
                       value={newLyrics}
                       onChange={(e) => setNewLyrics(e.target.value)}
                       placeholder="Paste lyrics formatted by verse and chorus here... Use [Verse 1], [Chorus] headings if wanted."
-                      className="w-full h-48 bg-gray-50 border border-gray-100 focus:bg-white rounded-xl p-3.5 text-sm text-gray-800 resize-none outline-none focus:border-emerald-300 transition-all"
+                      className="w-full h-48 bg-white/5 border border-white/10 focus:bg-white/10 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 resize-none outline-none focus:border-emerald-500/50 transition-all"
                       required
                       id="new-lyrics-textarea"
                     />
@@ -1864,39 +1860,39 @@ export default function App() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Transliteration (Romanised Script)</label>
+                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Transliteration (Romanised Script)</label>
                       <textarea
                         value={newTranslit}
                         onChange={(e) => setNewTranslit(e.target.value)}
                         placeholder="Phonetic Roman text generated automatically or custom edited..."
-                        className="w-full h-32 bg-gray-50 border border-gray-100 rounded-xl p-3 text-xs sm:text-sm text-gray-800 resize-none outline-none focus:border-emerald-300 transition-all font-sans"
+                        className="w-full h-32 bg-white/5 border border-white/10 rounded-xl p-3 text-xs sm:text-sm text-white placeholder-slate-500 resize-none outline-none focus:border-emerald-500/50 transition-all font-sans"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Translation</label>
+                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Translation</label>
                       <textarea
                         value={newTranslation}
                         onChange={(e) => setNewTranslation(e.target.value)}
                         placeholder="Poetic or prose translation..."
-                        className="w-full h-32 bg-gray-50 border border-gray-100 rounded-xl p-3 text-xs sm:text-sm text-gray-800 resize-none outline-none focus:border-emerald-300 transition-all font-sans"
+                        className="w-full h-32 bg-white/5 border border-white/10 rounded-xl p-3 text-xs sm:text-sm text-white placeholder-slate-500 resize-none outline-none focus:border-emerald-500/50 transition-all font-sans"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="border-t border-gray-100 pt-5 flex justify-end gap-3">
+                <div className="border-t border-white/10 pt-5 flex justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => setCurrentPage('home')}
-                    className="text-xs font-bold text-gray-500 hover:bg-gray-100 px-4 py-2.5 rounded-xl transition-colors"
+                    className="text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmittingSong}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition-colors cursor-pointer"
+                    className="bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-xs px-6 py-2.5 rounded-xl transition-colors cursor-pointer shadow-lg shadow-emerald-500/20 active:scale-95"
                     id="submit-song-creator-btn"
                   >
                     {isSubmittingSong ? "Publishing..." : "Publish Song"}
@@ -1916,24 +1912,24 @@ export default function App() {
               transition={{ duration: 0.25 }}
               className="max-w-4xl mx-auto space-y-6"
             >
-              <div className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl w-fit cursor-pointer" onClick={() => setCurrentPage('home')}>
+              <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 px-3 py-1.5 rounded-xl w-fit cursor-pointer" onClick={() => setCurrentPage('home')}>
                 <ArrowLeft className="w-3.5 h-3.5" /> Back
               </div>
 
               {/* Profile Card */}
-              <div className="bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row items-center gap-6">
-                <div className="w-20 h-20 rounded-full bg-emerald-50 text-emerald-700 font-display font-bold text-3xl uppercase flex items-center justify-center border-2 border-emerald-100">
+              <div className="bg-[#0d1322]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col sm:flex-row items-center gap-6">
+                <div className="w-20 h-20 rounded-full bg-emerald-500/20 text-emerald-300 font-display font-bold text-3xl uppercase flex items-center justify-center border-2 border-emerald-500/30 shrink-0">
                   {currentUser.displayName.slice(0, 2)}
                 </div>
                 <div className="grow space-y-1 text-center sm:text-left">
                   <div className="flex items-center justify-center sm:justify-start gap-2.5">
-                    <h1 className="font-display font-bold text-2xl text-gray-950 tracking-tight">{currentUser.displayName}</h1>
-                    <span className="text-[10px] font-bold uppercase tracking-widest bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-mono">
+                    <h1 className="font-display font-bold text-2xl text-white tracking-tight">{currentUser.displayName}</h1>
+                    <span className="text-[10px] font-bold uppercase tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-mono">
                       {currentUser.role || 'User'}
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-400 font-mono">{currentUser.email}</p>
-                  <p className="text-sm text-gray-600 italic font-medium leading-relaxed max-w-lg">
+                  <p className="text-xs sm:text-sm text-slate-400 font-mono">{currentUser.email}</p>
+                  <p className="text-sm text-slate-300 italic font-medium leading-relaxed max-w-lg">
                     "{currentUser.bio || "No profile bio written yet."}"
                   </p>
                 </div>
@@ -1943,13 +1939,13 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
                 {/* Favorites */}
-                <div className="bg-white border border-gray-100 rounded-3xl p-5 sm:p-6 shadow-xs">
-                  <h3 className="font-display font-bold text-base text-gray-900 border-b border-gray-100 pb-2 mb-4 tracking-tight flex items-center gap-1.5">
-                    <BookHeart className="w-4 h-4 text-emerald-600" />
+                <div className="bg-[#0d1322]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-6 shadow-2xl">
+                  <h3 className="font-display font-bold text-base text-white border-b border-white/10 pb-2 mb-4 tracking-tight flex items-center gap-1.5">
+                    <BookHeart className="w-4 h-4 text-emerald-400" />
                     Bookmarked Songs
                   </h3>
                   {(!currentUser.favorites || currentUser.favorites.length === 0) ? (
-                    <p className="text-xs text-gray-400 italic py-6 text-center">No bookmarked songs yet.</p>
+                    <p className="text-xs text-slate-400 italic py-6 text-center">No bookmarked songs yet.</p>
                   ) : (
                     <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
                       {currentUser.favorites.map(songId => {
@@ -1959,13 +1955,13 @@ export default function App() {
                           <div
                             key={songId}
                             onClick={() => handleSelectSong(songId)}
-                            className="p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-emerald-200 cursor-pointer flex items-center justify-between text-left transition-colors"
+                            className="p-3 bg-white/5 rounded-xl border border-white/10 hover:border-emerald-500/40 cursor-pointer flex items-center justify-between text-left transition-colors"
                           >
                             <div>
-                              <div className="text-xs font-bold text-gray-900 line-clamp-1">{sObj.title}</div>
-                              <div className="text-[10px] text-gray-500 font-medium">{sObj.artist}</div>
+                              <div className="text-xs font-bold text-white line-clamp-1">{sObj.title}</div>
+                              <div className="text-[10px] text-slate-400 font-medium">{sObj.artist}</div>
                             </div>
-                            <ChevronRight className="w-4 h-4 text-gray-300" />
+                            <ChevronRight className="w-4 h-4 text-slate-500" />
                           </div>
                         );
                       })}
@@ -1974,23 +1970,23 @@ export default function App() {
                 </div>
 
                 {/* Submissions/Edits activity */}
-                <div className="bg-white border border-gray-100 rounded-3xl p-5 sm:p-6 shadow-xs">
-                  <h3 className="font-display font-bold text-base text-gray-900 border-b border-gray-100 pb-2 mb-4 tracking-tight flex items-center gap-1.5">
-                    <Info className="w-4 h-4 text-emerald-600" />
+                <div className="bg-[#0d1322]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-6 shadow-2xl">
+                  <h3 className="font-display font-bold text-base text-white border-b border-white/10 pb-2 mb-4 tracking-tight flex items-center gap-1.5">
+                    <Info className="w-4 h-4 text-emerald-400" />
                     Your Contributions
                   </h3>
-                  <div className="space-y-3.5 text-xs text-gray-600 font-medium py-3">
-                    <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-xl border border-gray-100">
+                  <div className="space-y-3.5 text-xs text-slate-300 font-medium py-3">
+                    <div className="flex justify-between items-center bg-white/5 p-2.5 rounded-xl border border-white/10">
                       <span>Joined Community:</span>
-                      <strong className="text-gray-800 font-mono">{new Date(currentUser.createdAt).toLocaleDateString()}</strong>
+                      <strong className="text-white font-mono">{new Date(currentUser.createdAt).toLocaleDateString()}</strong>
                     </div>
-                    <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-xl border border-gray-100">
+                    <div className="flex justify-between items-center bg-white/5 p-2.5 rounded-xl border border-white/10">
                       <span>Wiki role tier:</span>
-                      <strong className="text-emerald-700 capitalize font-mono">{currentUser.role || 'User'}</strong>
+                      <strong className="text-emerald-400 capitalize font-mono">{currentUser.role || 'User'}</strong>
                     </div>
-                    <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-xl border border-gray-100">
+                    <div className="flex justify-between items-center bg-white/5 p-2.5 rounded-xl border border-white/10">
                       <span>Saved items count:</span>
-                      <strong className="text-gray-800 font-mono">{currentUser.favorites?.length || 0}</strong>
+                      <strong className="text-white font-mono">{currentUser.favorites?.length || 0}</strong>
                     </div>
                   </div>
                 </div>
@@ -2009,23 +2005,23 @@ export default function App() {
               transition={{ duration: 0.25 }}
               className="max-w-4xl mx-auto space-y-6"
             >
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <h1 className="font-display font-bold text-xl sm:text-2xl text-red-700 tracking-tight flex items-center gap-2">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <h1 className="font-display font-bold text-xl sm:text-2xl text-rose-400 tracking-tight flex items-center gap-2">
                   <ShieldAlert className="w-6 h-6" />
                   Moderator Queue & Flagged Content
                 </h1>
                 <button
                   onClick={() => setCurrentPage('home')}
-                  className="text-xs font-semibold text-gray-500 hover:text-gray-900 bg-gray-100 px-3 py-1.5 rounded-lg"
+                  className="text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg cursor-pointer"
                 >
                   Back
                 </button>
               </div>
 
               {flagsLoading ? (
-                <div className="text-center py-10 text-gray-400">Loading flagged reports...</div>
+                <div className="text-center py-10 text-slate-400">Loading flagged reports...</div>
               ) : flags.length === 0 ? (
-                <div className="bg-white border border-gray-100 rounded-3xl p-10 text-center text-gray-400">
+                <div className="bg-[#0d1322]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-10 text-center text-slate-400">
                   Excellent! The moderation queue is currently empty. No pending flags.
                 </div>
               ) : (
@@ -2035,33 +2031,33 @@ export default function App() {
                     return (
                       <div 
                         key={flag.id} 
-                        className={`bg-white border border-gray-100 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row justify-between gap-4 items-start ${
+                        className={`bg-[#0d1322]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl flex flex-col md:flex-row justify-between gap-4 items-start ${
                           !isPending ? 'opacity-60' : ''
                         }`}
                       >
                         <div className="space-y-1.5 grow">
                           <div className="flex items-center gap-2">
                             <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                              flag.type === 'song' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
+                              flag.type === 'song' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
                             }`}>
                               Flagged {flag.type}
                             </span>
                             <span className={`text-[10px] font-bold font-mono tracking-wider px-2 py-0.5 rounded-full capitalize ${
-                              isPending ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-500'
+                              isPending ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20' : 'bg-white/5 text-slate-400 border border-white/10'
                             }`}>
                               {flag.status}
                             </span>
                           </div>
 
-                          <h3 className="font-bold text-sm text-gray-900">
+                          <h3 className="font-bold text-sm text-white">
                             Reason: {flag.reason}
                           </h3>
                           
-                          <p className="text-xs text-gray-600 leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-gray-100">
+                          <p className="text-xs text-slate-300 leading-relaxed bg-white/5 p-2.5 rounded-lg border border-white/10">
                             <strong>Reporter details:</strong> {flag.details || "No details provided."}
                           </p>
 
-                          <div className="text-[10px] text-gray-400 font-mono">
+                          <div className="text-[10px] text-slate-400 font-mono">
                             Reported by <strong>{flag.reportedByUsername}</strong> on {new Date(flag.createdAt).toLocaleDateString()}
                           </div>
                         </div>
@@ -2070,13 +2066,13 @@ export default function App() {
                           <div className="flex gap-2 shrink-0 md:self-center">
                             <button
                               onClick={() => handleResolveFlag(flag.id, 'dismiss')}
-                              className="text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 px-3.5 py-2 rounded-xl transition-colors cursor-pointer"
+                              className="text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/10 px-3.5 py-2 rounded-xl transition-colors cursor-pointer"
                             >
                               Dismiss (Keep Content)
                             </button>
                             <button
                               onClick={() => handleResolveFlag(flag.id, 'resolve')}
-                              className="text-xs font-semibold bg-red-600 hover:bg-red-500 text-white px-3.5 py-2 rounded-xl transition-colors cursor-pointer"
+                              className="text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white px-3.5 py-2 rounded-xl transition-colors cursor-pointer shadow-md shadow-rose-600/20"
                             >
                               Resolve (Hide Content)
                             </button>
@@ -2095,16 +2091,16 @@ export default function App() {
 
       {/* Global Lyrics Reporter Modal */}
       {reportingSong && selectedSong && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100">
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
-              <h3 className="font-display font-semibold text-base text-gray-900 flex items-center gap-1.5">
-                <AlertTriangle className="w-5 h-5 text-red-500" />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-[#0d1322] rounded-3xl p-6 max-w-md w-full shadow-2xl border border-white/10">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/10">
+              <h3 className="font-display font-semibold text-base text-white flex items-center gap-1.5">
+                <AlertTriangle className="w-5 h-5 text-rose-400" />
                 Report Lyrics Inaccuracy
               </h3>
               <button 
                 onClick={() => setReportingSong(false)}
-                className="text-gray-400 hover:text-gray-700 cursor-pointer"
+                className="text-slate-400 hover:text-white cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2112,48 +2108,48 @@ export default function App() {
 
             <form onSubmit={handleSongFlagSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                   Type of Discrepancy
                 </label>
                 <select
                   value={songFlagReason}
                   onChange={(e) => setSongFlagReason(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-red-500 transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white outline-none focus:border-rose-500 transition-colors"
                   required
                 >
-                  <option value="">Select reason...</option>
-                  <option value="Severe Spelling/Type typos">Typo typos / incorrect lyrics lines</option>
-                  <option value="Highly Inaccurate Translation">Inaccurate or offensive translation</option>
-                  <option value="Incorrect Song Metadata">Incorrect metadata (Artist, Album, Year)</option>
-                  <option value="Copyright/Trademark Violation">Copyright takedown requests</option>
+                  <option value="" className="bg-[#0d1322]">Select reason...</option>
+                  <option value="Severe Spelling/Type typos" className="bg-[#0d1322]">Typo typos / incorrect lyrics lines</option>
+                  <option value="Highly Inaccurate Translation" className="bg-[#0d1322]">Inaccurate or offensive translation</option>
+                  <option value="Incorrect Song Metadata" className="bg-[#0d1322]">Incorrect metadata (Artist, Album, Year)</option>
+                  <option value="Copyright/Trademark Violation" className="bg-[#0d1322]">Copyright takedown requests</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                   Detailed Explanation
                 </label>
                 <textarea
                   value={songFlagDetails}
                   onChange={(e) => setSongFlagDetails(e.target.value)}
                   placeholder="Reference the incorrect line or explain the legal/spelling discrepancy here..."
-                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5 text-sm text-gray-800 h-28 resize-none outline-none focus:border-red-500 transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 h-28 resize-none outline-none focus:border-rose-500 transition-colors"
                   required
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-gray-50">
+              <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => setReportingSong(false)}
-                  className="text-xs font-medium text-gray-500 hover:bg-gray-100 px-4 py-2.5 rounded-xl transition-colors"
+                  className="text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingSongFlag}
-                  className="bg-red-600 hover:bg-red-500 disabled:bg-slate-400 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
+                  className="bg-rose-600 hover:bg-rose-500 disabled:bg-slate-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer shadow-lg shadow-rose-600/20"
                 >
                   {isSubmittingSongFlag ? "Sending Report..." : "Submit Report"}
                 </button>
@@ -2165,35 +2161,36 @@ export default function App() {
 
       {/* Global Auth (Sign In / Register) Modal Dialog */}
       {authModalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-slate-100 relative">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-[#0d1322] rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-white/10 relative">
             <button 
               onClick={() => { setAuthModalOpen(false); resetAuthForm(); }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 cursor-pointer"
+              className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="text-center mb-6">
-              <div className="w-14 h-14 rounded-2xl overflow-hidden border border-rose-100 flex items-center justify-center bg-[#FFF5F6] mx-auto mb-3 shadow-md shadow-rose-500/5">
+              <div className="w-14 h-14 rounded-2xl overflow-hidden border border-emerald-500/20 flex items-center justify-center bg-emerald-500/10 mx-auto mb-3 shadow-lg shadow-emerald-500/10">
                 <img 
                   src={brandLogo} 
                   alt="Xur Logo" 
                   className="w-full h-full object-contain p-1"
                   referrerPolicy="no-referrer"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/logo.jpg'; }}
                 />
               </div>
-              <h2 className="font-display font-bold text-xl text-gray-950 tracking-tight">
+              <h2 className="font-display font-bold text-xl text-white tracking-tight">
                 {authMode === 'login' ? "Welcome to Xur" : "Create Xur Account"}
               </h2>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 {authMode === 'login' ? "Sign in to edit lyrics, translate, and discuss meaning" : "Sign up and build your translation profile"}
               </p>
             </div>
 
             {/* Error alerts */}
             {authError && (
-              <div className="bg-red-50 border border-red-100 text-red-700 rounded-xl p-3 text-xs mb-4 leading-relaxed font-medium">
+              <div className="bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-xl p-3 text-xs mb-4 leading-relaxed font-medium">
                 {authError}
               </div>
             )}
@@ -2201,13 +2198,13 @@ export default function App() {
             <form onSubmit={handleAuthSubmit} className="space-y-4">
               {authMode === 'register' && (
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Display Name</label>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Display Name</label>
                   <input
                     type="text"
                     value={authDisplayName}
                     onChange={(e) => setAuthDisplayName(e.target.value)}
                     placeholder="e.g. Joyjeet"
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2 text-sm outline-none text-gray-800"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm outline-none text-white placeholder-slate-500 focus:border-emerald-500/50"
                     required
                     id="auth-reg-name"
                   />
@@ -2215,26 +2212,26 @@ export default function App() {
               )}
 
               <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Email Address</label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Email Address</label>
                 <input
                   type="email"
                   value={authEmail}
                   onChange={(e) => setAuthEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2 text-sm outline-none text-gray-800"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm outline-none text-white placeholder-slate-500 focus:border-emerald-500/50"
                   required
                   id="auth-email-input"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Password</label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Password</label>
                 <input
                   type="password"
                   value={authPassword}
                   onChange={(e) => setAuthPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2 text-sm outline-none text-gray-800"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm outline-none text-white placeholder-slate-500 focus:border-emerald-500/50"
                   required
                   id="auth-pass-input"
                 />
@@ -2243,21 +2240,21 @@ export default function App() {
               {authMode === 'register' && (
                 <>
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Short Bio</label>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Short Bio</label>
                     <input
                       type="text"
                       value={authBio}
                       onChange={(e) => setAuthBio(e.target.value)}
                       placeholder="Avid lyrics translator..."
-                      className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2 text-sm outline-none text-gray-800"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm outline-none text-white placeholder-slate-500 focus:border-emerald-500/50"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">System Role Tier</label>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">System Role Tier</label>
                     <select
                       value={authRole}
                       onChange={(e) => setAuthRole(e.target.value as any)}
-                      className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-sm outline-none text-gray-800"
+                      className="w-full bg-[#0d1322] border border-white/10 rounded-xl px-3 py-2 text-sm outline-none text-white"
                     >
                       <option value="user">User Contributor</option>
                       <option value="moderator">Official Moderator (Review flags)</option>
@@ -2269,11 +2266,11 @@ export default function App() {
               <button
                 type="submit"
                 disabled={authLoading}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-400 text-white font-bold text-xs py-2.5 rounded-xl transition-all cursor-pointer shadow-sm shadow-emerald-900/5 mt-2"
+                className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-xs py-2.5 rounded-xl transition-all cursor-pointer shadow-lg shadow-emerald-500/20 active:scale-95 mt-2"
                 id="auth-submit-btn"
               >
                 {authLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin mx-auto text-emerald-200" />
+                  <Loader2 className="w-4 h-4 animate-spin mx-auto text-slate-950" />
                 ) : (
                   authMode === 'login' ? "Sign In" : "Sign Up"
                 )}
@@ -2284,22 +2281,22 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
-                className="text-xs text-emerald-600 hover:text-emerald-800 font-semibold"
+                className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer"
               >
                 {authMode === 'login' ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
               </button>
             </div>
 
             {/* Quick Demologin (Zerodelay test capability) */}
-            <div className="border-t border-gray-100 pt-4 mt-4 text-center">
-              <span className="block text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+            <div className="border-t border-white/10 pt-4 mt-4 text-center">
+              <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-2">
                 Quick Test Login (No Password)
               </span>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => handleQuickLogin('user')}
-                  className="bg-gray-50 hover:bg-emerald-50/50 border border-gray-100 text-[10px] font-bold text-emerald-700 py-2 rounded-xl transition-colors cursor-pointer"
+                  className="bg-white/5 hover:bg-emerald-500/10 border border-white/10 hover:border-emerald-500/30 text-[10px] font-bold text-emerald-300 py-2 rounded-xl transition-colors cursor-pointer"
                   id="auth-demo-user-btn"
                 >
                   Login as Contributor
@@ -2307,7 +2304,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => handleQuickLogin('moderator')}
-                  className="bg-gray-50 hover:bg-red-50/50 border border-gray-100 text-[10px] font-bold text-red-700 py-2 rounded-xl transition-colors cursor-pointer"
+                  className="bg-white/5 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/30 text-[10px] font-bold text-rose-300 py-2 rounded-xl transition-colors cursor-pointer"
                   id="auth-demo-mod-btn"
                 >
                   Login as Moderator
@@ -2326,7 +2323,7 @@ export default function App() {
             initial={{ opacity: 0, y: 50, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 z-50 border border-slate-850 text-xs sm:text-sm font-medium font-sans max-w-sm w-11/12 sm:w-auto"
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#0d1322] text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 z-50 border border-emerald-500/30 text-xs sm:text-sm font-medium font-sans max-w-sm w-11/12 sm:w-auto backdrop-blur-xl"
           >
             <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
             <span className="flex-1 text-slate-100">{toastMessage}</span>
@@ -2342,8 +2339,8 @@ export default function App() {
 
       {/* Webpage Feedback Modal */}
       {showFeedbackModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className={`bg-white rounded-3xl p-6 sm:p-8 ${feedbackTab === 'view' ? 'max-w-2xl' : 'max-w-md'} w-full shadow-2xl border border-slate-100 relative transition-all duration-300 max-h-[85vh] flex flex-col`}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className={`bg-[#0d1322] rounded-3xl p-6 sm:p-8 ${feedbackTab === 'view' ? 'max-w-2xl' : 'max-w-md'} w-full shadow-2xl border border-white/10 relative transition-all duration-300 max-h-[85vh] flex flex-col`}>
             <button 
               onClick={() => {
                 setShowFeedbackModal(false);
@@ -2351,32 +2348,32 @@ export default function App() {
                 setFbRating(5);
                 setFbCategory('praise');
               }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 cursor-pointer"
+              className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="text-center mb-5 shrink-0">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-rose-500 flex items-center justify-center mx-auto mb-2 shadow-md shadow-amber-500/10 animate-pulse">
-                <Star className="w-6 h-6 text-white fill-amber-100" />
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-rose-500 flex items-center justify-center mx-auto mb-2 shadow-lg shadow-amber-500/20 animate-pulse">
+                <Star className="w-6 h-6 text-slate-950 fill-amber-100" />
               </div>
-              <h2 className="font-display font-bold text-xl text-gray-950 tracking-tight">
+              <h2 className="font-display font-bold text-xl text-white tracking-tight">
                 Website Feedback
               </h2>
-              <p className="text-xs text-gray-450 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 Let's build Xur(সুৰ) together
               </p>
             </div>
 
             {/* Tab Selector */}
-            <div className="flex border-b border-gray-100 mb-5 shrink-0">
+            <div className="flex border-b border-white/10 mb-5 shrink-0">
               <button
                 type="button"
                 onClick={() => setFeedbackTab('write')}
                 className={`flex-1 pb-2.5 text-xs sm:text-sm font-bold text-center transition-all border-b-2 cursor-pointer ${
                   feedbackTab === 'write'
-                    ? 'border-emerald-500 text-emerald-600 font-extrabold'
-                    : 'border-transparent text-gray-400 hover:text-gray-600'
+                    ? 'border-emerald-400 text-emerald-300 font-extrabold'
+                    : 'border-transparent text-slate-400 hover:text-slate-200'
                 }`}
               >
                 Submit Feedback
@@ -2386,8 +2383,8 @@ export default function App() {
                 onClick={() => setFeedbackTab('view')}
                 className={`flex-1 pb-2.5 text-xs sm:text-sm font-bold text-center transition-all border-b-2 cursor-pointer ${
                   feedbackTab === 'view'
-                    ? 'border-emerald-500 text-emerald-600 font-extrabold'
-                    : 'border-transparent text-gray-400 hover:text-gray-600'
+                    ? 'border-emerald-400 text-emerald-300 font-extrabold'
+                    : 'border-transparent text-slate-400 hover:text-slate-200'
                 }`}
               >
                 All Community Feedbacks ({feedbacks.length})
@@ -2400,39 +2397,39 @@ export default function App() {
                 <form onSubmit={handleSubmitFeedback} className="space-y-4">
                   {/* Inline Success and Error States */}
                   {fbError && (
-                    <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded-xl p-3 text-xs font-semibold flex items-start gap-2">
+                    <div className="bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-xl p-3 text-xs font-semibold flex items-start gap-2">
                       <span className="shrink-0 mt-0.5">⚠️</span>
                       <span>{fbError}</span>
                     </div>
                   )}
 
                   {fbSuccess && (
-                    <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl p-3 text-xs font-semibold flex items-start gap-2 animate-pulse">
+                    <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-xl p-3 text-xs font-semibold flex items-start gap-2 animate-pulse">
                       <span className="shrink-0 mt-0.5">✅</span>
                       <span>{fbSuccess}</span>
                     </div>
                   )}
 
-                  {/* Linked Song Listing concept (Property / Listing mapping) */}
+                  {/* Linked Song Listing concept */}
                   {selectedSong && (
-                    <div className="bg-emerald-50/60 border border-emerald-100 rounded-xl p-3 text-xs text-emerald-800 flex flex-col gap-1">
-                      <div className="flex items-center gap-1.5 font-bold uppercase text-[9px] tracking-wider text-emerald-700">
+                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-xs text-emerald-300 flex flex-col gap-1">
+                      <div className="flex items-center gap-1.5 font-bold uppercase text-[9px] tracking-wider text-emerald-400">
                         <span className="relative flex h-2 w-2">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
                         </span>
                         Linked Song Listing
                       </div>
-                      <div className="font-medium text-slate-800 flex items-center gap-1">
-                        <span className="text-emerald-600 font-bold">🎵</span>
-                        {selectedSong.title} — <span className="text-gray-500 font-normal">{selectedSong.artist}</span>
+                      <div className="font-medium text-white flex items-center gap-1">
+                        <span className="text-emerald-400 font-bold">🎵</span>
+                        {selectedSong.title} — <span className="text-slate-400 font-normal">{selectedSong.artist}</span>
                       </div>
                     </div>
                   )}
 
                   {/* Star Rating selector */}
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 text-center">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 text-center">
                       How would you rate your experience?
                     </label>
                     <div className="flex justify-center gap-2">
@@ -2445,7 +2442,7 @@ export default function App() {
                         >
                           <Star 
                             className={`w-8 h-8 transition-colors ${
-                              star <= fbRating ? 'text-amber-400 fill-amber-400' : 'text-gray-200'
+                              star <= fbRating ? 'text-amber-400 fill-amber-400' : 'text-slate-700'
                             }`}
                           />
                         </button>
@@ -2455,7 +2452,7 @@ export default function App() {
 
                   {/* Feedback type category */}
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
                       Category
                     </label>
                     <div className="grid grid-cols-2 gap-2">
@@ -2464,10 +2461,10 @@ export default function App() {
                           key={cat}
                           type="button"
                           onClick={() => setFbCategory(cat)}
-                          className={`py-2 px-3 text-xs font-bold rounded-xl border transition-all capitalize ${
+                          className={`py-2 px-3 text-xs font-bold rounded-xl border transition-all capitalize cursor-pointer ${
                             fbCategory === cat
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : 'bg-gray-50 text-gray-600 border-gray-100 hover:bg-gray-100'
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                              : 'bg-white/5 text-slate-300 border-white/10 hover:bg-white/10'
                           }`}
                         >
                           {cat === 'bug' ? '🐛 Bug Report' : cat === 'praise' ? '❤️ Love It' : cat === 'suggestion' ? '💡 Suggestion' : '❓ Other'}
@@ -2478,7 +2475,7 @@ export default function App() {
 
                   {/* Message field */}
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
                       Your Message
                     </label>
                     <textarea
@@ -2488,28 +2485,23 @@ export default function App() {
                         if (fbError) setFbError(null);
                       }}
                       placeholder="Share details of your experience, suggestions for new features, or any bugs you encountered..."
-                      className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none text-gray-800 h-28 resize-none focus:border-emerald-500 transition-colors"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none text-white placeholder-slate-500 h-28 resize-none focus:border-emerald-500/50 transition-colors"
                       required
                     />
                   </div>
 
                   {/* Contributor badge context */}
-                  <div className="text-[10px] text-gray-400 font-medium text-center">
-                    Submitting as <span className="font-bold text-gray-700">{currentUser ? currentUser.displayName : 'Guest Listener (Anonymous)'}</span>
-                  </div>
-
-                  <div className="bg-emerald-50/40 border border-emerald-100/30 rounded-lg p-2 text-center text-[10px] text-emerald-800/80 font-medium flex items-center justify-center gap-1.5">
-                    <span>🌐</span>
-                    <span>This feedback is public and visible to everyone in the community</span>
+                  <div className="text-[10px] text-slate-400 font-medium text-center">
+                    Submitting as <span className="font-bold text-white">{currentUser ? currentUser.displayName : 'Guest Listener (Anonymous)'}</span>
                   </div>
 
                   <button
                     type="submit"
                     disabled={fbSubmitting}
-                    className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white font-bold text-xs py-2.5 rounded-xl transition-all cursor-pointer shadow-sm flex items-center justify-center gap-2"
+                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-xs py-2.5 rounded-xl transition-all cursor-pointer shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
                   >
                     {fbSubmitting ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
                     ) : (
                       <>
                         <Send className="w-3.5 h-3.5" />
@@ -2533,7 +2525,7 @@ export default function App() {
                             className={`px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0 capitalize transition-all cursor-pointer ${
                               feedbackCategoryFilter === cat
                                 ? 'bg-emerald-500 text-slate-950 shadow-xs'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+                                : 'bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10'
                             }`}
                           >
                             {cat} ({count})
@@ -2545,11 +2537,11 @@ export default function App() {
 
                   {feedbacksLoading ? (
                     <div className="flex flex-col items-center justify-center py-12 gap-3">
-                      <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
-                      <span className="text-xs text-gray-450 font-medium">Loading community feedbacks...</span>
+                      <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
+                      <span className="text-xs text-slate-400 font-medium">Loading community feedbacks...</span>
                     </div>
                   ) : feedbacks.length === 0 ? (
-                    <div className="text-center py-12 bg-gray-50 rounded-2xl border border-gray-100">
+                    <div className="text-center py-12 bg-white/5 rounded-2xl border border-white/10">
                       <Sparkles className="w-8 h-8 text-amber-400 mx-auto mb-2 opacity-60 animate-bounce" />
                       <p className="text-xs sm:text-sm font-bold text-gray-700">No feedbacks yet!</p>
                       <p className="text-[11px] text-gray-450 mt-1 max-w-xs mx-auto">Be the first to submit a constructive suggestion or praise to build Xur(সুৰ) together.</p>
@@ -2651,6 +2643,7 @@ export default function App() {
                     alt="Xur Logo" 
                     className="w-full h-full object-contain p-0.5"
                     referrerPolicy="no-referrer"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/logo.jpg'; }}
                   />
                 </div>
                 <span className="font-display font-bold text-lg text-white tracking-tight">About Us</span>

@@ -147,23 +147,23 @@ export default function DiscussionSection({
   const getRepliesFor = (id: string) => comments.filter(c => c.parentId === id && !c.isFlagged);
 
   return (
-    <div className="bg-white border border-gray-100 rounded-3xl p-5 sm:p-7 shadow-xs">
-      <div className="flex items-center gap-2 border-b border-gray-100 pb-4 mb-6">
-        <MessageSquare className="w-5 h-5 text-emerald-600" />
-        <h3 className="font-display font-semibold text-lg text-gray-900 tracking-tight">
+    <div className="bg-[#0d121f]/80 border border-white/10 rounded-3xl p-5 sm:p-7 shadow-2xl backdrop-blur-xl">
+      <div className="flex items-center gap-2 border-b border-white/10 pb-4 mb-6">
+        <MessageSquare className="w-5 h-5 text-emerald-400" />
+        <h3 className="font-display font-bold text-lg text-white tracking-tight">
           Interpretations & Meaning Discussions ({comments.length})
         </h3>
       </div>
 
       {/* Quoted Lyric Highlight (for starting context) */}
       {quotedLineInput && (
-        <div className="bg-amber-50/70 border border-amber-100 rounded-2xl p-4 mb-5 flex items-start gap-3">
-          <Quote className="w-4 h-4 text-amber-500 mt-1 shrink-0 rotate-180" />
+        <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-4 mb-5 flex items-start gap-3 backdrop-blur-md">
+          <Quote className="w-4 h-4 text-emerald-400 mt-1 shrink-0 rotate-180" />
           <div className="grow">
-            <p className="text-[10px] uppercase font-bold tracking-wider text-amber-600 font-mono mb-0.5">
+            <p className="text-[10px] uppercase font-bold tracking-wider text-emerald-400 font-mono mb-0.5">
               Commenting on Specific line:
             </p>
-            <p className="text-sm italic font-medium text-amber-900">
+            <p className="text-sm italic font-medium text-emerald-100">
               "{quotedLineInput}"
             </p>
           </div>
@@ -172,7 +172,7 @@ export default function DiscussionSection({
               setQuotedLineInput(null);
               onClearSelectedLine();
             }}
-            className="text-amber-500 hover:text-amber-800 p-0.5"
+            className="text-emerald-400 hover:text-white p-0.5 cursor-pointer"
             aria-label="Remove quoted line"
           >
             <X className="w-4 h-4" />
@@ -182,14 +182,14 @@ export default function DiscussionSection({
 
       {/* Reply indicator */}
       {replyToId && (
-        <div className="bg-emerald-50/60 border border-emerald-100/60 rounded-2xl p-3 mb-5 flex items-center justify-between">
-          <span className="text-xs text-emerald-800 font-medium flex items-center gap-1.5">
-            <Reply className="w-3.5 h-3.5" />
-            Replying to <strong>{comments.find(c => c.id === replyToId)?.username}</strong>
+        <div className="bg-teal-950/40 border border-teal-500/30 rounded-2xl p-3 mb-5 flex items-center justify-between backdrop-blur-md">
+          <span className="text-xs text-teal-200 font-medium flex items-center gap-1.5">
+            <Reply className="w-3.5 h-3.5 text-teal-400" />
+            Replying to <strong className="text-white">{comments.find(c => c.id === replyToId)?.username}</strong>
           </span>
           <button 
             onClick={() => setReplyToId(null)}
-            className="text-emerald-500 hover:text-emerald-800 text-xs font-semibold"
+            className="text-teal-400 hover:text-white text-xs font-semibold cursor-pointer"
           >
             Cancel
           </button>
@@ -198,7 +198,7 @@ export default function DiscussionSection({
 
       {/* Comment Form */}
       <form onSubmit={handleSubmitComment} className="mb-8" id="comment-form-main">
-        <div className="bg-gray-50 border border-gray-100 focus-within:border-emerald-300 focus-within:ring-2 focus-within:ring-emerald-50 rounded-2xl p-3.5 transition-all">
+        <div className="bg-slate-900/90 border border-white/10 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 rounded-2xl p-3.5 transition-all shadow-inner">
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
@@ -209,24 +209,24 @@ export default function DiscussionSection({
                   ? "Explain the meaning, translate, or share context of this line..." 
                   : "What does this song mean to you? Share cultural contexts, translations, or thoughts..."
             }
-            className="w-full bg-transparent resize-none outline-none border-none text-gray-800 text-sm placeholder-gray-400 min-h-[90px]"
+            className="w-full bg-transparent resize-none outline-none border-none text-slate-100 text-sm placeholder-slate-500 min-h-[90px]"
             required
             id="comment-textarea"
           />
-          <div className="flex items-center justify-between border-t border-gray-100/80 pt-3 mt-2">
-            <div className="text-xs text-gray-400">
+          <div className="flex items-center justify-between border-t border-white/10 pt-3 mt-2">
+            <div className="text-xs text-slate-400">
               {currentUser ? (
-                <span>Posting as <strong className="text-gray-600">{currentUser.displayName}</strong></span>
+                <span>Posting as <strong className="text-emerald-400">{currentUser.displayName}</strong></span>
               ) : (
-                <span>Posting as <strong className="text-gray-600">Guest Listener</strong></span>
+                <span>Posting as <strong className="text-slate-300">Guest Listener</strong></span>
               )}
             </div>
             <button
               type="submit"
-              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs py-2 px-4 rounded-xl transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold text-xs py-2 px-4 rounded-xl transition-all hover:scale-105 cursor-pointer shadow-md shadow-emerald-500/20"
               id="submit-comment-btn"
             >
-              <Send className="w-3.5 h-3.5" />
+              <Send className="w-3.5 h-3.5 stroke-[2.5]" />
               Submit
             </button>
           </div>
@@ -236,7 +236,7 @@ export default function DiscussionSection({
       {/* Comments List */}
       <div className="space-y-6">
         {topLevelComments.length === 0 ? (
-          <div className="text-center py-12 text-gray-400 text-sm">
+          <div className="text-center py-12 text-slate-500 text-sm italic">
             No interpretations shared yet. Be the first to start the discussion!
           </div>
         ) : (
@@ -246,19 +246,19 @@ export default function DiscussionSection({
             const userHasUpvoted = comment.upvotes?.includes(userUid);
 
             return (
-              <div key={comment.id} className="border-b border-gray-50 pb-6 last:border-0 last:pb-0" id={`comment-node-${comment.id}`}>
+              <div key={comment.id} className="border-b border-white/10 pb-6 last:border-0 last:pb-0" id={`comment-node-${comment.id}`}>
                 {/* Individual Comment Container */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center font-display text-emerald-700 font-bold text-xs uppercase shadow-inner">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center font-display text-emerald-300 font-bold text-xs uppercase shadow-inner">
                         {comment.username.slice(0, 2)}
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900 leading-tight">
+                        <h4 className="text-sm font-bold text-white leading-tight">
                           {comment.username}
                         </h4>
-                        <span className="text-[10px] text-gray-400 font-mono">
+                        <span className="text-[10px] text-slate-400 font-mono">
                           {new Date(comment.createdAt).toLocaleDateString()}
                         </span>
                       </div>
@@ -266,7 +266,7 @@ export default function DiscussionSection({
 
                     <button 
                       onClick={() => setReportingComment(comment)}
-                      className="text-gray-300 hover:text-red-500 transition-colors p-1"
+                      className="text-slate-500 hover:text-rose-400 transition-colors p-1 cursor-pointer"
                       title="Report comment"
                     >
                       <Flag className="w-3.5 h-3.5" />
@@ -275,14 +275,14 @@ export default function DiscussionSection({
 
                   {/* Quoted line on top of comment body */}
                   {comment.quotedLine && (
-                    <div className="text-xs italic bg-slate-50 border-l-2 border-emerald-500 py-1.5 px-3 rounded-r-md text-gray-600 flex items-start gap-1">
-                      <Quote className="w-3 h-3 text-emerald-500 rotate-180 mt-0.5 shrink-0" />
+                    <div className="text-xs italic bg-emerald-950/30 border-l-2 border-emerald-400 py-1.5 px-3 rounded-r-md text-emerald-200 flex items-start gap-1">
+                      <Quote className="w-3 h-3 text-emerald-400 rotate-180 mt-0.5 shrink-0" />
                       <span>"{comment.quotedLine}"</span>
                     </div>
                   )}
 
                   {/* Comment Text */}
-                  <p className="text-sm leading-relaxed text-gray-700 pl-1 whitespace-pre-wrap">
+                  <p className="text-sm leading-relaxed text-slate-200 pl-1 whitespace-pre-wrap">
                     {comment.content}
                   </p>
 
@@ -292,10 +292,10 @@ export default function DiscussionSection({
                       {/* Upvote button */}
                       <button
                         onClick={() => handleUpvote(comment.id)}
-                        className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium font-mono transition-colors ${
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold font-mono transition-colors cursor-pointer ${
                           userHasUpvoted
-                            ? 'bg-emerald-50 text-emerald-700'
-                            : 'hover:bg-gray-50 text-gray-400 hover:text-gray-600'
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                            : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white border border-white/10'
                         }`}
                       >
                         <ThumbsUp className="w-3.5 h-3.5" />
@@ -308,7 +308,7 @@ export default function DiscussionSection({
                           setReplyToId(comment.id);
                           document.getElementById('comment-form-main')?.scrollIntoView({ behavior: 'smooth' });
                         }}
-                        className="flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors"
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold text-slate-400 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
                       >
                         <Reply className="w-3.5 h-3.5" />
                         Reply
@@ -318,14 +318,14 @@ export default function DiscussionSection({
                       <div className="relative">
                         <button
                           onClick={() => setShowEmojiPicker(showEmojiPicker === comment.id ? null : comment.id)}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors"
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold text-slate-400 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
                         >
                           <Smile className="w-3.5 h-3.5" />
                           React
                         </button>
 
                         {showEmojiPicker === comment.id && (
-                          <div className="absolute left-0 bottom-full mb-1.5 bg-white border border-gray-100 rounded-full shadow-lg px-2 py-1.5 flex gap-1.5 z-10 animate-fade-in">
+                          <div className="absolute left-0 bottom-full mb-2 bg-slate-900 border border-white/15 rounded-full shadow-2xl px-3 py-1.5 flex gap-2 z-20 backdrop-blur-xl animate-fade-in">
                             {EMOJIS.map(emoji => (
                               <button
                                 key={emoji}
@@ -351,10 +351,10 @@ export default function DiscussionSection({
                             <button
                               key={emoji}
                               onClick={() => handleReaction(comment.id, emoji)}
-                              className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
+                              className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border transition-colors cursor-pointer ${
                                 hasReacted 
-                                  ? 'bg-emerald-50 border-emerald-100 text-emerald-800'
-                                  : 'bg-white border-gray-100 text-gray-500 hover:bg-gray-50'
+                                  ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300 font-bold'
+                                  : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'
                               }`}
                             >
                               <span>{emoji}</span>
@@ -369,43 +369,43 @@ export default function DiscussionSection({
 
                 {/* Render Threaded Replies */}
                 {replies.length > 0 && (
-                  <div className="pl-6 sm:pl-10 mt-4 border-l-2 border-gray-50 space-y-4">
+                  <div className="pl-6 sm:pl-10 mt-4 border-l-2 border-white/10 space-y-4">
                     {replies.map(reply => {
                       const replyHasUpvoted = reply.upvotes?.includes(userUid);
                       return (
                         <div key={reply.id} className="space-y-1.5" id={`reply-node-${reply.id}`}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center font-display text-gray-600 font-bold text-[10px] uppercase shadow-inner">
+                              <div className="w-6 h-6 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center font-display text-slate-300 font-bold text-[10px] uppercase shadow-inner">
                                 {reply.username.slice(0, 2)}
                               </div>
                               <div>
-                                <h5 className="text-xs font-semibold text-gray-900 leading-tight">
+                                <h5 className="text-xs font-semibold text-slate-200 leading-tight">
                                   {reply.username}
                                 </h5>
-                                <span className="text-[9px] text-gray-400 font-mono">
+                                <span className="text-[9px] text-slate-500 font-mono">
                                   {new Date(reply.createdAt).toLocaleDateString()}
                                 </span>
                               </div>
                             </div>
                             <button 
                               onClick={() => setReportingComment(reply)}
-                              className="text-gray-300 hover:text-red-500 transition-colors p-1"
+                              className="text-slate-600 hover:text-rose-400 transition-colors p-1 cursor-pointer"
                               title="Report comment"
                             >
                               <Flag className="w-3 h-3" />
                             </button>
                           </div>
-                          <p className="text-xs leading-relaxed text-gray-700 pl-1 whitespace-pre-wrap">
+                          <p className="text-xs leading-relaxed text-slate-300 pl-1 whitespace-pre-wrap">
                             {reply.content}
                           </p>
                           <div className="flex items-center justify-between gap-3 pt-0.5">
                             <button
                               onClick={() => handleUpvote(reply.id)}
-                              className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium font-mono transition-colors ${
+                              className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium font-mono transition-colors cursor-pointer ${
                                 replyHasUpvoted
-                                  ? 'bg-emerald-50 text-emerald-700 font-semibold'
-                                  : 'hover:bg-gray-50 text-gray-400 hover:text-gray-600'
+                                  ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30'
+                                  : 'bg-white/5 text-slate-400 hover:bg-white/10'
                               }`}
                             >
                               <ThumbsUp className="w-3 h-3" />
@@ -423,10 +423,10 @@ export default function DiscussionSection({
                                     <button
                                       key={emoji}
                                       onClick={() => handleReaction(reply.id, emoji)}
-                                      className={`inline-flex items-center gap-1 text-[9px] px-1.5 py-0.2 rounded-full border transition-colors ${
+                                      className={`inline-flex items-center gap-1 text-[9px] px-1.5 py-0.2 rounded-full border transition-colors cursor-pointer ${
                                         rHasReacted 
-                                          ? 'bg-emerald-50 border-emerald-100 text-emerald-800'
-                                          : 'bg-white border-gray-100 text-gray-400'
+                                          ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300'
+                                          : 'bg-white/5 border-white/10 text-slate-400'
                                       }`}
                                     >
                                       <span>{emoji}</span>
@@ -450,16 +450,16 @@ export default function DiscussionSection({
 
       {/* Flag / Report Comment Modal Dialog */}
       {reportingComment && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 animate-scale-up">
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
-              <h3 className="font-display font-semibold text-base text-gray-900 flex items-center gap-1.5">
-                <AlertTriangle className="w-5 h-5 text-red-500" />
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-[#0d121f] rounded-3xl p-6 max-w-md w-full shadow-2xl border border-white/15 animate-scale-up">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/10">
+              <h3 className="font-display font-bold text-base text-white flex items-center gap-1.5">
+                <AlertTriangle className="w-5 h-5 text-rose-400" />
                 Report Comment
               </h3>
               <button 
                 onClick={() => setReportingComment(null)}
-                className="text-gray-400 hover:text-gray-700"
+                className="text-slate-400 hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -467,13 +467,13 @@ export default function DiscussionSection({
 
             <form onSubmit={handleFlagSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                   Reason for Reporting
                 </label>
                 <select
                   value={flagReason}
                   onChange={(e) => setFlagReason(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-sm text-gray-800 outline-none focus:border-red-500 transition-colors"
+                  className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-200 outline-none focus:border-rose-500 transition-colors"
                   required
                 >
                   <option value="">Select a reason...</option>
@@ -485,29 +485,29 @@ export default function DiscussionSection({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                   Additional Details
                 </label>
                 <textarea
                   value={flagDetails}
                   onChange={(e) => setFlagDetails(e.target.value)}
                   placeholder="Explain why this comment is inaccurate or inappropriate..."
-                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5 text-sm text-gray-800 h-24 resize-none outline-none focus:border-red-500 transition-colors"
+                  className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-slate-200 h-24 resize-none outline-none focus:border-rose-500 transition-colors"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-gray-50">
+              <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => setReportingComment(null)}
-                  className="text-xs font-medium text-gray-500 hover:bg-gray-100 px-4 py-2.5 rounded-xl transition-colors"
+                  className="text-xs font-semibold text-slate-400 hover:bg-white/5 px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingFlag}
-                  className="bg-red-600 hover:bg-red-500 disabled:bg-slate-400 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
+                  className="bg-rose-500 hover:bg-rose-400 disabled:bg-slate-700 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer shadow-md shadow-rose-500/20"
                 >
                   {isSubmittingFlag ? "Submitting..." : "Submit Report"}
                 </button>
