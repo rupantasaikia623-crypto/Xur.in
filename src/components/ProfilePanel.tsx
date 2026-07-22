@@ -50,6 +50,7 @@ export default function ProfilePanel({
   feedbacks
 }: ProfilePanelProps) {
   const [activeTab, setActiveTab] = useState<'main' | 'edit' | 'feedback' | 'settings'>('main');
+  const [feedbackFilter, setFeedbackFilter] = useState<'all' | 'mine'>('all');
   
   // Edit form states
   const [editName, setEditName] = useState(currentUser?.displayName || '');
@@ -140,7 +141,7 @@ export default function ProfilePanel({
                 <h2 className="font-display font-bold text-lg text-gray-900 tracking-tight">
                   {activeTab === 'main' && 'User Account'}
                   {activeTab === 'edit' && 'Edit Profile Details'}
-                  {activeTab === 'feedback' && 'My Submitted Feedback'}
+                  {activeTab === 'feedback' && 'Community Feedback'}
                   {activeTab === 'settings' && 'Account Preferences'}
                 </h2>
               </div>
@@ -271,7 +272,7 @@ export default function ProfilePanel({
                     >
                       <span className="flex items-center gap-2.5">
                         <MessageSquare className="w-4 h-4 text-gray-400 group-hover:text-emerald-600 transition-colors" />
-                        My Feedbacks ({userFeedbacks.length})
+                        Community Feedbacks ({feedbacks.length})
                       </span>
                       <span className="text-xs text-gray-400 font-semibold group-hover:text-emerald-600 transition-colors">→</span>
                     </button>
@@ -429,41 +430,73 @@ export default function ProfilePanel({
               {/* TAB 3: USER FEEDBACKS LIST */}
               {activeTab === 'feedback' && (
                 <div className="space-y-4 animate-fade-in">
+                  <div className="flex items-center justify-between gap-2 bg-gray-100 p-1 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => setFeedbackFilter('all')}
+                      className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        feedbackFilter === 'all'
+                          ? 'bg-white text-emerald-800 shadow-xs'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      All Feedback ({feedbacks.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFeedbackFilter('mine')}
+                      className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        feedbackFilter === 'mine'
+                          ? 'bg-white text-emerald-800 shadow-xs'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      My Feedback ({userFeedbacks.length})
+                    </button>
+                  </div>
+
                   <p className="text-xs text-gray-500 font-medium">
-                    Here are all feedback notes you have posted to the community database. Thank you for making Xur better!
+                    {feedbackFilter === 'all'
+                      ? "Browse all feedback submitted by the community in real-time."
+                      : "Here are the feedback notes you posted to Xur."}
                   </p>
 
-                  {userFeedbacks.length === 0 ? (
+                  {((feedbackFilter === 'all' ? feedbacks : userFeedbacks).length === 0) ? (
                     <div className="text-center py-12 border-2 border-dashed border-gray-100 rounded-2xl">
                       <MessageSquare className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                      <p className="text-sm font-bold text-gray-700">No feedbacks submitted yet</p>
-                      <p className="text-xs text-gray-400 mt-0.5">Use the Feedback floating badge to write one.</p>
+                      <p className="text-sm font-bold text-gray-700">No feedbacks found</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Use the Feedback floating badge or bottom menu to write one.</p>
                     </div>
                   ) : (
                     <div className="space-y-3 max-h-[450px] overflow-y-auto pr-2">
-                      {userFeedbacks.map((fb) => (
-                        <div key={fb.id} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col gap-2">
+                      {(feedbackFilter === 'all' ? feedbacks : userFeedbacks).map((fb) => (
+                        <div key={fb.id} className="p-4 bg-gray-50/80 rounded-2xl border border-gray-100 flex flex-col gap-2 hover:border-gray-200 transition-all">
                           <div className="flex justify-between items-start gap-2">
-                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                              fb.category === 'bug' ? 'bg-red-50 text-red-700 border border-red-100' :
-                              fb.category === 'suggestion' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
-                              fb.category === 'praise' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
-                              'bg-gray-50 text-gray-700 border border-gray-200'
-                            }`}>
-                              {fb.category}
-                            </span>
-                            <span className="text-[10px] text-gray-400 font-mono">
+                            <div>
+                              <span className="font-bold text-xs text-gray-900 block">
+                                {fb.username || "Guest Listener"}
+                              </span>
+                              <span className={`inline-block text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full mt-1 ${
+                                fb.category === 'bug' ? 'bg-red-50 text-red-700 border border-red-100' :
+                                fb.category === 'suggestion' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                                fb.category === 'praise' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                                'bg-gray-50 text-gray-700 border border-gray-200'
+                              }`}>
+                                {fb.category}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-gray-400 font-mono shrink-0">
                               {new Date(fb.createdAt).toLocaleDateString()}
                             </span>
                           </div>
                           
-                          <p className="text-xs sm:text-sm text-gray-800 leading-relaxed italic">
+                          <p className="text-xs sm:text-sm text-gray-800 leading-relaxed italic bg-white p-2.5 rounded-xl border border-gray-100">
                             "{fb.message}"
                           </p>
 
                           {fb.songTitle && (
-                            <span className="text-[10px] text-emerald-700 font-bold">
-                              Linked Song: {fb.songTitle}
+                            <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50/50 px-2 py-0.5 rounded-md inline-block self-start border border-emerald-100/50">
+                              🎵 Linked Song: {fb.songTitle}
                             </span>
                           )}
                         </div>

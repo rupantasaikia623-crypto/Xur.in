@@ -226,6 +226,7 @@ export default function App() {
   const [feedbacksLoading, setFeedbacksLoading] = useState<boolean>(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState<boolean>(false);
   const [feedbackTab, setFeedbackTab] = useState<'write' | 'view'>('write');
+  const [feedbackCategoryFilter, setFeedbackCategoryFilter] = useState<'all' | 'praise' | 'suggestion' | 'bug' | 'other'>('all');
   const [fbRating, setFbRating] = useState<number>(5);
   const [fbCategory, setFbCategory] = useState<'bug' | 'suggestion' | 'praise' | 'other'>('praise');
   const [fbMessage, setFbMessage] = useState<string>('');
@@ -1262,7 +1263,7 @@ export default function App() {
                           </span>
                           Website Feedback
                         </h3>
-                        <p className="text-[10px] text-gray-500 mt-0.5">Help us build Sur together!</p>
+                        <p className="text-[10px] text-gray-500 mt-0.5">Let's build Xur(সুৰ) together</p>
                       </div>
                       <div className="flex items-center gap-1.5 self-start sm:self-center">
                         <button
@@ -2174,11 +2175,11 @@ export default function App() {
             </button>
 
             <div className="text-center mb-6">
-              <div className="w-14 h-14 rounded-2xl overflow-hidden border border-gray-100 flex items-center justify-center bg-white mx-auto mb-3 shadow-md shadow-emerald-500/5">
+              <div className="w-14 h-14 rounded-2xl overflow-hidden border border-rose-100 flex items-center justify-center bg-[#FFF5F6] mx-auto mb-3 shadow-md shadow-rose-500/5">
                 <img 
                   src={brandLogo} 
                   alt="Xur Logo" 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain p-1"
                   referrerPolicy="no-referrer"
                 />
               </div>
@@ -2363,7 +2364,7 @@ export default function App() {
                 Website Feedback
               </h2>
               <p className="text-xs text-gray-450 mt-1">
-                Help us craft Sur into the ultimate regional lyrics wiki.
+                Let's build Xur(সুৰ) together
               </p>
             </div>
 
@@ -2389,7 +2390,7 @@ export default function App() {
                     : 'border-transparent text-gray-400 hover:text-gray-600'
                 }`}
               >
-                Feedbacks Given ({feedbacks.length})
+                All Community Feedbacks ({feedbacks.length})
               </button>
             </div>
 
@@ -2519,6 +2520,29 @@ export default function App() {
                 </form>
               ) : (
                 <div className="space-y-4">
+                  {/* Category Filter Chips */}
+                  {feedbacks.length > 0 && (
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none">
+                      {(['all', 'praise', 'suggestion', 'bug', 'other'] as const).map((cat) => {
+                        const count = cat === 'all' ? feedbacks.length : feedbacks.filter(f => f.category === cat).length;
+                        return (
+                          <button
+                            key={cat}
+                            type="button"
+                            onClick={() => setFeedbackCategoryFilter(cat)}
+                            className={`px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0 capitalize transition-all cursor-pointer ${
+                              feedbackCategoryFilter === cat
+                                ? 'bg-emerald-500 text-slate-950 shadow-xs'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+                            }`}
+                          >
+                            {cat} ({count})
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
                   {feedbacksLoading ? (
                     <div className="flex flex-col items-center justify-center py-12 gap-3">
                       <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
@@ -2528,7 +2552,7 @@ export default function App() {
                     <div className="text-center py-12 bg-gray-50 rounded-2xl border border-gray-100">
                       <Sparkles className="w-8 h-8 text-amber-400 mx-auto mb-2 opacity-60 animate-bounce" />
                       <p className="text-xs sm:text-sm font-bold text-gray-700">No feedbacks yet!</p>
-                      <p className="text-[11px] text-gray-450 mt-1 max-w-xs mx-auto">Be the first to submit a constructive suggestion or praise to build Sur together.</p>
+                      <p className="text-[11px] text-gray-450 mt-1 max-w-xs mx-auto">Be the first to submit a constructive suggestion or praise to build Xur(সুৰ) together.</p>
                       <button
                         type="button"
                         onClick={() => setFeedbackTab('write')}
@@ -2539,7 +2563,10 @@ export default function App() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 max-h-[450px] overflow-y-auto p-0.5">
-                      {feedbacks.map((fb) => (
+                      {(feedbackCategoryFilter === 'all' 
+                        ? feedbacks 
+                        : feedbacks.filter(fb => fb.category === feedbackCategoryFilter)
+                      ).map((fb) => (
                         <div 
                           key={fb.id} 
                           className="bg-gray-50/50 border border-gray-100 hover:border-gray-200 hover:bg-white rounded-2xl p-4 transition-all flex flex-col justify-between shadow-xs group"
@@ -2617,12 +2644,12 @@ export default function App() {
             
             {/* About Our Website Section */}
             <div className="lg:col-span-5 space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center bg-white shadow-md shadow-emerald-500/5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl overflow-hidden border border-rose-900/50 flex items-center justify-center bg-[#FFF5F6] shadow-md shadow-rose-950/20">
                   <img 
                     src={brandLogo} 
                     alt="Xur Logo" 
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain p-0.5"
                     referrerPolicy="no-referrer"
                   />
                 </div>

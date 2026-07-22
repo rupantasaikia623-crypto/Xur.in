@@ -74,14 +74,14 @@ export default function Navbar({
           {/* Logo */}
           <div 
             onClick={() => { onNavigate('home'); setSelectedLanguage('All'); setSelectedGenre('All'); setSearchText(''); }}
-            className="flex items-center gap-2 cursor-pointer shrink-0"
+            className="flex items-center gap-2.5 cursor-pointer shrink-0 group"
             id="nav-logo"
           >
-            <div className="w-10 h-10 rounded-xl overflow-hidden border border-gray-100 flex items-center justify-center bg-white shadow-xs">
+            <div className="w-11 h-11 rounded-xl overflow-hidden border border-rose-100/80 flex items-center justify-center bg-[#FFF5F6] shadow-xs group-hover:scale-105 group-hover:border-rose-200 transition-all">
               <img 
                 src={brandLogo} 
                 alt="Xur Logo" 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain p-0.5"
                 referrerPolicy="no-referrer"
               />
             </div>
