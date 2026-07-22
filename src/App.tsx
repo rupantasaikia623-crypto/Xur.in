@@ -472,14 +472,68 @@ export default function App() {
     }
   }, [songs]);
 
+  // Dynamically update document title and Open Graph meta tags for link previews
+  useEffect(() => {
+    const siteTitle = "সুৰ (Xur) — Lyrics & Music Community Platform";
+    const defaultDesc = "Discover, share, and discuss song lyrics. Translate, transliterate, and interpret meanings together on Xur (সুৰ) music community.";
+    
+    let title = siteTitle;
+    let description = defaultDesc;
+
+    if (selectedSong && currentPage === 'home') {
+      title = `${selectedSong.title} - ${selectedSong.artist} | Xur (সুৰ)`;
+      description = `Explore lyrics, translations, and line-by-line meanings for "${selectedSong.title}" by ${selectedSong.artist} on Xur (সুৰ) music community.`;
+    } else if (currentPage === 'submit') {
+      title = `Submit Song Lyrics | Xur (সুৰ)`;
+      description = `Contribute song lyrics, translations, and meanings to the Xur (সুৰ) music community platform.`;
+    }
+
+    document.title = title;
+
+    const setMetaTag = (selector: string, attrName: string, attrVal: string, content: string) => {
+      let el = document.querySelector(selector);
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute(attrName, attrVal);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', content);
+    };
+
+    setMetaTag('meta[name="description"]', 'name', 'description', description);
+    setMetaTag('meta[property="og:title"]', 'property', 'og:title', title);
+    setMetaTag('meta[property="og:description"]', 'property', 'og:description', description);
+    setMetaTag('meta[name="twitter:title"]', 'name', 'twitter:title', title);
+    setMetaTag('meta[name="twitter:description"]', 'name', 'twitter:description', description);
+  }, [selectedSong, currentPage]);
+
   const handleShareSong = async () => {
     if (!selectedSong) return;
     const shareUrl = `${window.location.origin}${window.location.pathname}?song=${selectedSong.id}`;
     
+    const authorId = currentUser ? currentUser.uid : 'anonymous';
+    const authorName = currentUser ? currentUser.displayName : 'Guest Listener';
+
+    // Native device sharing sheet if supported
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${selectedSong.title} - ${selectedSong.artist} | Xur (সুৰ)`,
+          text: `Check out "${selectedSong.title}" by ${selectedSong.artist} lyrics & translations on Xur (সুৰ)!`,
+          url: shareUrl,
+        });
+        const newAct = await logUserActivity('share', `Shared direct link to "${selectedSong.title}"`, selectedSong.id, authorId, authorName);
+        setActivities(prev => [newAct, ...prev]);
+        setToastMessage(`Shared "${selectedSong.title}"!`);
+        return;
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') return;
+      }
+    }
+
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(shareUrl);
-        setToastMessage(`Direct link for "${selectedSong.title}" copied to clipboard!`);
       } else {
         // Fallback for older browsers or environments
         const tempInput = document.createElement('input');
@@ -488,12 +542,9 @@ export default function App() {
         tempInput.select();
         document.execCommand('copy');
         document.body.removeChild(tempInput);
-        setToastMessage(`Direct link for "${selectedSong.title}" copied to clipboard!`);
       }
 
-      // Log share activity
-      const authorId = currentUser ? currentUser.uid : 'anonymous';
-      const authorName = currentUser ? currentUser.displayName : 'Guest Listener';
+      setToastMessage(`Direct link for "${selectedSong.title}" copied to clipboard!`);
       const newAct = await logUserActivity('share', `Shared direct link to "${selectedSong.title}"`, selectedSong.id, authorId, authorName);
       setActivities(prev => [newAct, ...prev]);
     } catch (err) {
