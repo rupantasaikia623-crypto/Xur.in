@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import brandLogo from './assets/images/brand_logo_1784387163973.jpg';
+import brandLogo from './assets/images/xur_music_logo_1784714618259.jpg';
 import { motion, AnimatePresence } from 'motion/react';
 import { db } from './lib/firebase';
 import { onSnapshot, collection, query, orderBy, limit, doc } from 'firebase/firestore';
@@ -32,6 +32,13 @@ import LyricsDisplay from './components/LyricsDisplay';
 import LyricsHelper from './components/LyricsHelper';
 import DiscussionSection from './components/DiscussionSection';
 import VersionHistory from './components/VersionHistory';
+import HeroSection from './components/HeroSection';
+import MarqueeBanner from './components/MarqueeBanner';
+import AudioPlayerWidget from './components/AudioPlayerWidget';
+import CursorGlow from './components/CursorGlow';
+import LoadingScreen from './components/LoadingScreen';
+import SkeletonCard from './components/SkeletonCard';
+import FooterSection from './components/FooterSection';
 
 import { 
   Plus, 
@@ -145,6 +152,16 @@ const getActivityMeta = (actionType: string) => {
 };
 
 export default function App() {
+  const [appLoading, setAppLoading] = useState(true);
+
+  // Auto dismiss initial splash screen
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAppLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Navigation / Page state
   const [currentPage, setCurrentPage] = useState('home'); // 'home' | 'song-details' | 'add-song' | 'profile' | 'moderator-board'
   const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
@@ -1022,6 +1039,16 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#070a12] text-slate-100 flex flex-col font-sans selection:bg-emerald-500/30 selection:text-white antialiased relative overflow-x-hidden">
       
+      {/* Interactive Cursor Glow follower */}
+      <CursorGlow />
+
+      {/* Initial Animated Loading Splash Screen */}
+      <AnimatePresence>
+        {appLoading && (
+          <LoadingScreen onComplete={() => setAppLoading(false)} />
+        )}
+      </AnimatePresence>
+
       {/* Top Navigation bar */}
       <Navbar
         onSearch={setSearchQuery}
@@ -1037,7 +1064,7 @@ export default function App() {
       />
 
       {/* Main Container */}
-      <main className="grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full">
+      <main className="grow w-full">
         
         {/* Animated Page Transitions */}
         <AnimatePresence mode="wait">
@@ -1052,65 +1079,57 @@ export default function App() {
               transition={{ duration: 0.25 }}
               className="space-y-6 sm:space-y-8"
             >
-              {/* Legal disclaimer banner */}
-              <DisclaimerBanner />
+              {/* Premium Animated Hero Section with Vinyl Record & Equalizer */}
+              <HeroSection
+                songs={songs}
+                onExploreClick={() => {
+                  const el = document.getElementById('search-and-catalog');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                onAddSongClick={() => setCurrentPage('add-song')}
+                onSelectSong={(id) => handleSelectSong(id)}
+                totalViews={pageViews}
+              />
 
-              {/* Jumbotron / Hero Section */}
-              <div className="bg-gradient-to-br from-emerald-950/80 via-teal-950/60 to-slate-950/80 backdrop-blur-2xl border border-white/10 text-white rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
-                <div className="space-y-4 max-w-2xl z-10 text-center sm:text-left flex-1">
-                  <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    Interactive Lyrics Wiki
-                  </span>
-                  <h1 className="font-display font-bold text-3xl sm:text-4xl tracking-tight leading-tight text-white">
-                    Explore the depths of musical poetry
-                  </h1>
-                  <p className="text-xs sm:text-sm text-emerald-200/80 leading-relaxed">
-                    Collaborate on translations, understand deep metaphors with Gemini AI, discuss cultural contexts line-by-line, and read songs in multiple scripts seamlessly.
-                  </p>
-                </div>
-                <div className="shrink-0 flex gap-3 z-10">
-                  <button
-                    onClick={() => setCurrentPage('add-song')}
-                    className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-xs sm:text-sm px-5 py-3 rounded-xl transition-all cursor-pointer shadow-lg shadow-emerald-500/20 active:scale-95"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Submit Song
-                  </button>
-                </div>
-                {/* Visual glow background */}
-                <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-teal-500/10 blur-3xl rounded-full pointer-events-none" />
-              </div>
+              {/* Infinite Auto-scrolling Marquee for Trending Songs */}
+              <MarqueeBanner
+                songs={songs}
+                onSelectSong={(id) => handleSelectSong(id)}
+              />
 
-              {/* Separate Search Bar Section */}
-              <div className="bg-[#0d1322]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <h3 className="font-display font-bold text-sm text-white tracking-tight">
-                    Looking for a specific lyric?
-                  </h3>
-                  <p className="text-xs text-slate-400 leading-none">
-                    Search by titles, artists, or any word in the lyrics, translations, and transliterations.
-                  </p>
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8 py-6">
+                {/* Legal disclaimer banner */}
+                <DisclaimerBanner />
+
+                {/* Separate Search Bar Section */}
+                <div id="search-and-catalog" className="bg-[#0d1322]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <h3 className="font-display font-bold text-sm text-white tracking-tight flex items-center gap-2">
+                      <Search className="w-4 h-4 text-emerald-400" /> Looking for a specific lyric?
+                    </h3>
+                    <p className="text-xs text-slate-400 leading-none">
+                      Search by titles, artists, or any word in lyrics, translations, and transliterations.
+                    </p>
+                  </div>
+                  <div className="relative w-full md:max-w-md shrink-0">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-400" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search songs, artists, or specific lines..."
+                      className="w-full bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-white/10 focus:border-emerald-500/50 rounded-xl py-3 pl-11 pr-10 text-xs outline-none transition-all shadow-inner text-white placeholder-slate-400"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="relative w-full md:max-w-md shrink-0">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search songs, artists, or specific lines..."
-                    className="w-full bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-white/10 focus:border-emerald-500/50 rounded-xl py-3 pl-11 pr-10 text-xs outline-none transition-all shadow-inner text-white placeholder-slate-400"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              </div>
 
               {/* Discovery Main Layout Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -1393,7 +1412,8 @@ export default function App() {
                 </div>
 
               </div>
-            </motion.div>
+            </div>
+          </motion.div>
           )}
 
           {/* PAGE 2: Song Details Page */}
@@ -2625,131 +2645,14 @@ export default function App() {
         </div>
       )}
 
-      {/* Footer */}
-      <footer className="bg-slate-950 text-slate-400 mt-16 border-t border-slate-900 font-sans relative overflow-hidden" id="site-footer">
-        {/* Decorative background visual elements */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/5 blur-3xl rounded-full -translate-y-1/2 pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-500/5 blur-3xl rounded-full translate-y-1/2 pointer-events-none" />
+      {/* Floating Audio Player Widget */}
+      <AudioPlayerWidget 
+        song={selectedSong || (songs.length > 0 ? songs[0] : null)}
+        onOpenLyrics={(id) => handleSelectSong(id)}
+      />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 pb-12 border-b border-slate-900">
-            
-            {/* About Our Website Section */}
-            <div className="lg:col-span-5 space-y-4">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl overflow-hidden border border-rose-900/50 flex items-center justify-center bg-[#FFF5F6] shadow-md shadow-rose-950/20">
-                  <img 
-                    src={brandLogo} 
-                    alt="Xur Logo" 
-                    className="w-full h-full object-contain p-0.5"
-                    referrerPolicy="no-referrer"
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/logo.jpg'; }}
-                  />
-                </div>
-                <span className="font-display font-bold text-lg text-white tracking-tight">About Us</span>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
-                Our website is a platform built to help creators and users discover, share, and enjoy lyrics with ease. We are committed to providing a simple, fast, and user-friendly experience while building a trusted community for music lovers and lyric enthusiasts. Our mission is to make lyrics accessible, organized, and easy to explore for everyone.
-              </p>
-            </div>
-
-            {/* Meet Our Team Section */}
-            <div className="lg:col-span-7 space-y-4">
-              <h3 className="font-display font-bold text-base text-white tracking-tight">
-                Meet Our Team
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Founder & CEO */}
-                <div className="bg-slate-900/40 hover:bg-slate-900 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between group shadow-2xs">
-                  <div>
-                    <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest block mb-1">Founder & CEO</span>
-                    <h4 className="font-bold text-sm text-white font-sans tracking-tight">Udipta Pran</h4>
-                    <ul className="mt-3 space-y-1.5">
-                      <li className="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
-                        <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" /> Songwriter
-                      </li>
-                      <li className="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
-                        <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" /> Musician
-                      </li>
-                      <li className="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
-                        <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" /> Singer
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-slate-900 flex justify-start">
-                    <a 
-                      href="https://www.instagram.com/_udipta_pran_?igsh=MWhlN2s3cmlyNzc5bw==" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer"
-                      id="instagram-founder-link"
-                    >
-                      <Instagram className="w-3.5 h-3.5" />
-                      <span>Instagram</span>
-                    </a>
-                  </div>
-                </div>
-
-                {/* Co-Founder & CTO */}
-                <div className="bg-slate-900/40 hover:bg-slate-900 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between group shadow-2xs">
-                  <div>
-                    <span className="text-[9px] font-bold text-teal-400 uppercase tracking-widest block mb-1">Co-Founder & CTO</span>
-                    <h4 className="font-bold text-sm text-white font-sans tracking-tight">Rupanta Saikia</h4>
-                    <ul className="mt-3 space-y-1.5">
-                      <li className="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
-                        <span className="w-1 h-1 rounded-full bg-teal-500" /> Songwriter
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-slate-900 flex justify-start opacity-60">
-                    <span className="text-[10px] text-slate-500 font-medium">Core Platform & Tech</span>
-                  </div>
-                </div>
-
-                {/* Marketing Manager */}
-                <div className="bg-slate-900/40 hover:bg-slate-900 border border-slate-900 hover:border-slate-800 p-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between group shadow-2xs">
-                  <div>
-                    <span className="text-[9px] font-bold text-amber-400 uppercase tracking-widest block mb-1">Marketing Manager</span>
-                    <h4 className="font-bold text-sm text-white font-sans tracking-tight">Himanshu Sharma</h4>
-                    <ul className="mt-3 space-y-1.5">
-                      <li className="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
-                        <span className="w-1 h-1 rounded-full bg-amber-500 animate-pulse" /> Marketing Expert
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-slate-900 flex justify-start">
-                    <a 
-                      href="https://www.instagram.com/xypherion07_?igsh=cjJmbnhyb2R1Znhp" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
-                      id="instagram-marketing-link"
-                    >
-                      <Instagram className="w-3.5 h-3.5" />
-                      <span>Instagram</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* Footer Bottom */}
-          <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-            <p className="font-medium">
-              © 2026 All Rights Reserved.
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-medium">
-              <a href="#" className="hover:text-emerald-400 transition-colors" id="footer-privacy">Privacy Policy</a>
-              <a href="#" className="hover:text-emerald-400 transition-colors" id="footer-terms">Terms & Conditions</a>
-              <a href="#" className="hover:text-emerald-400 transition-colors" id="footer-contact">Contact Us</a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      {/* Modern Animated Footer */}
+      <FooterSection onNavigatePage={(page) => setCurrentPage(page)} />
 
     </div>
   );

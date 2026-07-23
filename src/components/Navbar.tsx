@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import brandLogo from '../assets/images/brand_logo_1784387163973.jpg';
+import brandLogo from '../assets/images/xur_music_logo_1784714618259.jpg';
 import { 
   Globe2, 
   Search, 
@@ -81,7 +81,7 @@ export default function Navbar({
               <img 
                 src={brandLogo} 
                 alt="Xur Logo" 
-                className="w-full h-full object-contain p-1"
+                className="w-full h-full object-cover rounded-xl"
                 referrerPolicy="no-referrer"
                 onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/logo.jpg'; }}
               />

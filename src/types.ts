@@ -18,6 +18,8 @@ export interface Song {
   artist: string;
   language: string; // e.g. Assamese, Bengali, Hindi, English
   album: string;
+  albumArtUrl?: string;
+  movieOrAlbum?: string;
   releaseYear: number;
   genre: string;
   tags: string[];

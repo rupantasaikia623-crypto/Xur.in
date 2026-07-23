@@ -80,4 +80,127 @@
   scrollbar-width: none;
 }
 
+/* Vinyl Spin Animation */
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 12s linear infinite;
+}
+
+.animate-spin-slow-paused {
+  animation: spinSlow 12s linear infinite;
+  animation-play-state: paused;
+}
+
+/* Infinite Marquee Animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Equalizer Bar Animation */
+@keyframes eqBar {
+  0%, 100% {
+    height: 20%;
+  }
+  50% {
+    height: 100%;
+  }
+}
+
+.animate-eq-1 { animation: eqBar 0.8s ease-in-out infinite; }
+.animate-eq-2 { animation: eqBar 1.1s ease-in-out 0.2s infinite; }
+.animate-eq-3 { animation: eqBar 0.7s ease-in-out 0.4s infinite; }
+.animate-eq-4 { animation: eqBar 0.9s ease-in-out 0.1s infinite; }
+.animate-eq-5 { animation: eqBar 1.2s ease-in-out 0.3s infinite; }
+
+/* Skeleton Shimmer */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.09) 50%,
+    rgba(255, 255, 255, 0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+}
+
+/* Glassmorphism Glow Border */
+.glass-glow {
+  background: rgba(13, 19, 34, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-glow-hover:hover {
+  border-color: rgba(16, 185, 129, 0.35);
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.2), inset 0 0 15px rgba(16, 185, 129, 0.05);
+}
+
+/* Waveform pulse */
+@keyframes wavePulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scaleY(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1.2);
+  }
+}
+
+.animate-wave-pulse {
+  animation: wavePulse 1.5s ease-in-out infinite;
+}
+
+/* Respect Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-spin-slow,
+  .animate-marquee,
+  .animate-float-note,
+  .animate-gradient-text,
+  .animate-shimmer {
+    animation: none !important;
+  }
+}
+
 
