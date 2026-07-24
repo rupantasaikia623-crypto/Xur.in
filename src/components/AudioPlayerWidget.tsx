@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Song } from '../types';
 import { Play, Pause, Volume2, VolumeX, Maximize2, Music, Sparkles, ChevronUp, ChevronDown, Repeat } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import brandLogo from '../assets/images/xur_music_logo_1784714618259.jpg';
+import brandLogo from '../assets/images/app_logo_wave_1784874601917.jpg';
 
 interface AudioPlayerWidgetProps {
   song: Song | null;
@@ -88,13 +88,22 @@ export default function AudioPlayerWidget({ song, onOpenLyrics }: AudioPlayerWid
                       src={song.albumArtUrl}
                       alt={song.title}
                       className={`w-full h-full object-cover transition-transform duration-500 ${isPlaying ? 'scale-105' : ''}`}
-                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = brandLogo; }}
+                      onError={(e) => { 
+                        const target = e.currentTarget as HTMLImageElement;
+                        target.onerror = null;
+                        target.src = brandLogo; 
+                      }}
                     />
                   ) : (
                     <img
                       src={brandLogo}
                       alt="Xur Logo"
                       className="w-full h-full object-cover"
+                      onError={(e) => { 
+                        const target = e.currentTarget as HTMLImageElement;
+                        target.onerror = null;
+                        target.src = '/logo.jpg'; 
+                      }}
                     />
                   )}
 

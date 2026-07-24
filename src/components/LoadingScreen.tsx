@@ -1,19 +1,27 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'motion/react';
-import brandLogo from '../assets/images/xur_music_logo_1784714618259.jpg';
+import brandLogo from '../assets/images/app_logo_wave_1784874601917.jpg';
 
 interface LoadingScreenProps {
   onComplete?: () => void;
 }
 
 export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (onComplete) {
+        onComplete();
+      }
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [onComplete]);
+
   return (
     <motion.div
-      initial={{ opacity: 1 }}
+      initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 1.05 }}
-      transition={{ duration: 0.5, ease: 'easeInOut' }}
-      onAnimationComplete={onComplete}
+      transition={{ duration: 0.4, ease: 'easeInOut' }}
       className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#050812] text-white select-none overflow-hidden"
     >
       {/* Background radial glow */}
@@ -34,7 +42,9 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
               alt="Xur"
               className="w-full h-full object-cover rounded-xl"
               onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src = '/logo.jpg';
+                const target = e.currentTarget as HTMLImageElement;
+                target.onerror = null;
+                target.src = '/logo.jpg';
               }}
             />
           </div>

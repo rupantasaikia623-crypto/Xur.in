@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import brandLogo from './assets/images/xur_music_logo_1784714618259.jpg';
+import brandLogo from './assets/images/app_logo_wave_1784874601917.jpg';
 import { motion, AnimatePresence } from 'motion/react';
 import { db } from './lib/firebase';
 import { onSnapshot, collection, query, orderBy, limit, doc } from 'firebase/firestore';
@@ -39,6 +39,7 @@ import CursorGlow from './components/CursorGlow';
 import LoadingScreen from './components/LoadingScreen';
 import SkeletonCard from './components/SkeletonCard';
 import FooterSection from './components/FooterSection';
+import { ContentProtectionProvider } from './components/ContentProtection';
 
 import { 
   Plus, 
@@ -1037,7 +1038,8 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070a12] text-slate-100 flex flex-col font-sans selection:bg-emerald-500/30 selection:text-white antialiased relative overflow-x-hidden">
+    <ContentProtectionProvider userId={currentUser?.uid}>
+      <div className="min-h-screen bg-[#070a12] text-slate-100 flex flex-col font-sans selection:bg-emerald-500/30 selection:text-white antialiased relative overflow-x-hidden">
       
       {/* Interactive Cursor Glow follower */}
       <CursorGlow />
@@ -2197,7 +2199,11 @@ export default function App() {
                   alt="Xur Logo" 
                   className="w-full h-full object-contain p-1"
                   referrerPolicy="no-referrer"
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/logo.jpg'; }}
+                  onError={(e) => { 
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.onerror = null;
+                    target.src = '/logo.jpg'; 
+                  }}
                 />
               </div>
               <h2 className="font-display font-bold text-xl text-white tracking-tight">
@@ -2655,5 +2661,6 @@ export default function App() {
       <FooterSection onNavigatePage={(page) => setCurrentPage(page)} />
 
     </div>
+  </ContentProtectionProvider>
   );
 }

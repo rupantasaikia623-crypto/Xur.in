@@ -38,6 +38,8 @@ export interface Song {
   flagReason?: string;
   currentVersionId?: string;
   hasUserSubmitted?: boolean;
+  isPremium?: boolean;
+  verified?: boolean;
 }
 
 export interface Comment {

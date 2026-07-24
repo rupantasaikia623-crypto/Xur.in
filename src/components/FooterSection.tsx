@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import brandLogo from '../assets/images/xur_music_logo_1784714618259.jpg';
+import brandLogo from '../assets/images/app_logo_wave_1784874601917.jpg';
 import { 
   Youtube, 
   Instagram, 
@@ -50,7 +50,9 @@ export default function FooterSection({ onNavigatePage }: FooterSectionProps) {
                   alt="Xur"
                   className="w-full h-full object-cover rounded-xl"
                   onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).src = '/logo.jpg';
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.onerror = null;
+                    target.src = '/logo.jpg';
                   }}
                 />
               </div>

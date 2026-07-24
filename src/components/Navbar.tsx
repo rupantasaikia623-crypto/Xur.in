@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import brandLogo from '../assets/images/xur_music_logo_1784714618259.jpg';
+import brandLogo from '../assets/images/app_logo_wave_1784874601917.jpg';
 import { 
   Globe2, 
   Search, 
@@ -11,10 +11,13 @@ import {
   Music,
   Menu,
   X,
-  Sparkles
+  Sparkles,
+  ShieldCheck,
+  Shield
 } from 'lucide-react';
 import { UserProfile, UserFeedback } from '../types';
 import ProfilePanel from './ProfilePanel';
+import { useContentProtection } from './ContentProtection';
 
 interface NavbarProps {
   onSearch: (text: string) => void;
@@ -49,6 +52,7 @@ export default function Navbar({
   const [selectedGenre, setSelectedGenre] = useState('All');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profilePanelOpen, setProfilePanelOpen] = useState(false);
+  const { protectionEnabled, setProtectionEnabled, watermarkText } = useContentProtection();
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -77,13 +81,17 @@ export default function Navbar({
             className="flex items-center gap-3 cursor-pointer shrink-0 group"
             id="nav-logo"
           >
-            <div className="w-11 h-11 rounded-2xl overflow-hidden border border-emerald-500/30 flex items-center justify-center bg-gradient-to-br from-emerald-900/40 to-slate-900 shadow-md shadow-emerald-500/10 group-hover:scale-105 group-hover:border-emerald-400 group-hover:shadow-emerald-500/20 transition-all">
+            <div className="w-11 h-11 rounded-2xl overflow-hidden border border-emerald-500/30 flex items-center justify-center bg-gradient-to-br from-emerald-900/40 to-slate-900 shadow-md shadow-emerald-500/10 group-hover:scale-105 group-hover:border-emerald-400 group-hover:shadow-emerald-500/20 transition-all shrink-0">
               <img 
                 src={brandLogo} 
                 alt="Xur Logo" 
                 className="w-full h-full object-cover rounded-xl"
                 referrerPolicy="no-referrer"
-                onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/logo.jpg'; }}
+                onError={(e) => { 
+                  const target = e.currentTarget as HTMLImageElement;
+                  target.onerror = null;
+                  target.src = '/logo.jpg'; 
+                }}
               />
             </div>
             <div>
@@ -121,6 +129,29 @@ export default function Navbar({
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
               Submit Lyrics
+            </button>
+
+            {/* Content Protection Toggle Badge */}
+            <button
+              onClick={() => setProtectionEnabled(!protectionEnabled)}
+              className={`hidden xl:flex items-center gap-1.5 font-semibold text-xs py-2 px-3 rounded-xl border transition-all cursor-pointer ${
+                protectionEnabled
+                  ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20 shadow-xs'
+                  : 'bg-amber-500/10 text-amber-300 border-amber-500/30 hover:bg-amber-500/20'
+              }`}
+              title={protectionEnabled ? `XUR DRM Active • ${watermarkText}` : 'Protection Disabled'}
+            >
+              {protectionEnabled ? (
+                <>
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>DRM Active</span>
+                </>
+              ) : (
+                <>
+                  <Shield className="w-3.5 h-3.5 text-amber-400" />
+                  <span>DRM Off</span>
+                </>
+              )}
             </button>
 
             {/* Moderator board link */}

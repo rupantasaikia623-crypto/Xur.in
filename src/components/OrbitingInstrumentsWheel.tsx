@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import brandLogo from '../assets/images/xur_music_logo_1784714618259.jpg';
+import brandLogo from '../assets/images/app_logo_wave_1784874601917.jpg';
 import { 
   Sparkles, 
   Volume2, 
@@ -313,7 +313,9 @@ export default function OrbitingInstrumentsWheel({
               alt="Xur Brand Logo"
               className="w-full h-full object-cover"
               onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src = '/logo.jpg';
+                const target = e.currentTarget as HTMLImageElement;
+                target.onerror = null;
+                target.src = '/logo.jpg';
               }}
             />
             {/* Center Spindle Hole */}
@@ -355,9 +357,10 @@ export default function OrbitingInstrumentsWheel({
               key={inst.id}
               className="absolute pointer-events-auto transition-opacity duration-300"
               style={{
-                animation: isWheelSpinning
-                  ? `orbitSpin ${duration}s linear infinite`
-                  : 'none',
+                animationName: isWheelSpinning ? 'orbitSpin' : 'none',
+                animationDuration: `${duration}s`,
+                animationTimingFunction: 'linear',
+                animationIterationCount: 'infinite',
                 animationDelay: `-${(inst.baseAngle / 360) * duration}s`,
                 transformOrigin: 'center center'
               }}
@@ -372,9 +375,10 @@ export default function OrbitingInstrumentsWheel({
                 {/* Counter-rotate the icon container so the instrument icon stays upright while orbiting */}
                 <div
                   style={{
-                    animation: isWheelSpinning
-                      ? `counterOrbitSpin ${duration}s linear infinite`
-                      : 'none',
+                    animationName: isWheelSpinning ? 'counterOrbitSpin' : 'none',
+                    animationDuration: `${duration}s`,
+                    animationTimingFunction: 'linear',
+                    animationIterationCount: 'infinite',
                     animationDelay: `-${(inst.baseAngle / 360) * duration}s`
                   }}
                   className="relative"
