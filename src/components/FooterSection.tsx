@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import brandLogo from '../assets/images/app_logo_wave_1784874601917.jpg';
+import { submitSubscriber } from '../lib/db-helpers';
 import { 
   Youtube, 
   Instagram, 
@@ -22,14 +23,19 @@ export default function FooterSection({ onNavigatePage }: FooterSectionProps) {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
 
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newsletterEmail) return;
-    setNewsletterSubscribed(true);
-    setTimeout(() => {
-      setNewsletterEmail('');
-      setNewsletterSubscribed(false);
-    }, 4000);
+    try {
+      await submitSubscriber(newsletterEmail.trim());
+      setNewsletterSubscribed(true);
+      setTimeout(() => {
+        setNewsletterEmail('');
+        setNewsletterSubscribed(false);
+      }, 4000);
+    } catch (e) {
+      console.error("Newsletter submission error:", e);
+    }
   };
 
   return (

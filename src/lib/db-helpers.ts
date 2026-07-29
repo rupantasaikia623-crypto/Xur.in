@@ -1,21 +1,3 @@
-import { 
-  collection, 
-  doc, 
-  setDoc, 
-  getDoc, 
-  getDocs, 
-  updateDoc, 
-  addDoc, 
-  query, 
-  where, 
-  orderBy, 
-  limit, 
-  increment,
-  arrayUnion,
-  arrayRemove,
-  deleteDoc
-} from 'firebase/firestore';
-import { db, auth } from './firebase';
 import { Song, Comment, SongVersion, UserProfile, FlagReport, UserFeedback, UserActivity } from '../types';
 import { supabase } from './supabase';
 
@@ -232,159 +214,168 @@ Livin' life in peace`,
   }
 ];
 
-// In-memory local storage fallback to ensure the app is 100% functional and crash-proof
+// Local Storage Fallback Keys
 const LOCAL_STORAGE_KEY_SONGS = "xur_local_songs";
 const LOCAL_STORAGE_KEY_COMMENTS = "xur_local_comments";
 const LOCAL_STORAGE_KEY_VERSIONS = "xur_local_versions";
 const LOCAL_STORAGE_KEY_PROFILE = "xur_local_profile";
 const LOCAL_STORAGE_KEY_FLAGS = "xur_local_flags";
+const LOCAL_STORAGE_KEY_FEEDBACKS = "xur_local_feedbacks";
+const LOCAL_STORAGE_KEY_ACTIVITIES = "xur_local_activities";
 
 function initializeLocalDb() {
   if (!localStorage.getItem(LOCAL_STORAGE_KEY_SONGS)) {
     localStorage.setItem(LOCAL_STORAGE_KEY_SONGS, JSON.stringify(SEED_SONGS));
   }
-  if (!localStorage.getItem(LOCAL_STORAGE_KEY_COMMENTS)) {
-    const seedComments: Comment[] = [
-      {
-        id: "c1",
-        songId: "pratidhwani-hazarika",
-        userId: "system",
-        username: "Xur Moderator",
-        content: "Bhupen da wrote this song highlighting the pains and echoes of marginalized struggles. It's incredibly relevant today.",
-        parentId: null,
-        upvotes: ["demo-user-1"],
-        reactions: { "💡": ["demo-user-1"] },
-        createdAt: new Date().toISOString(),
-        isFlagged: false
-      },
-      {
-        id: "c2",
-        songId: "pratidhwani-hazarika",
-        userId: "demo-user-1",
-        username: "Joyjeet",
-        content: "The term 'Niyoti' (destiny) here represents systemic forces rather than just pure luck. A masterpiece.",
-        parentId: null,
-        upvotes: ["system"],
-        reactions: { "❤️": ["system"] },
-        createdAt: new Date().toISOString(),
-        isFlagged: false
-      },
-      {
-        id: "c3",
-        songId: "pratidhwani-hazarika",
-        userId: "demo-user-2",
-        username: "Ananya",
-        content: "Exactly! Beautiful interpretation.",
-        parentId: "c2",
-        upvotes: [],
-        reactions: {},
-        createdAt: new Date().toISOString(),
-        isFlagged: false
-      },
-      {
-        id: "c4",
-        songId: "ekla-cholo-tagore",
-        userId: "system",
-        username: "Rabindra Fan",
-        content: "This song was Mahatma Gandhi's favorite during tough moments in the freedom struggle.",
-        parentId: null,
-        upvotes: ["demo-user-2"],
-        reactions: { "💡": ["demo-user-2", "demo-user-1"] },
-        createdAt: new Date().toISOString(),
-        isFlagged: false
-      }
-    ];
-    localStorage.setItem(LOCAL_STORAGE_KEY_COMMENTS, JSON.stringify(seedComments));
-  }
-  if (!localStorage.getItem(LOCAL_STORAGE_KEY_VERSIONS)) {
-    localStorage.setItem(LOCAL_STORAGE_KEY_VERSIONS, JSON.stringify([]));
-  }
-  if (!localStorage.getItem(LOCAL_STORAGE_KEY_FLAGS)) {
-    localStorage.setItem(LOCAL_STORAGE_KEY_FLAGS, JSON.stringify([]));
-  }
 }
 
-// Ensure the local storage is populated on module load
 if (typeof window !== "undefined") {
   initializeLocalDb();
 }
 
 // -------------------------------------------------------------
-// FIREBASE / LOCAL FALLBACK WRAPPER
+// USER PROFILES (SUPABASE + LOCAL FALLBACK)
 // -------------------------------------------------------------
 
-// Helper to determine if we can/should write to Firestore
-async function checkFirestore() {
-  try {
-    // Just a fast validation to see if the network or auth works
-    const testDoc = await getDoc(doc(db, "system_metadata", "health"));
-    return true;
-  } catch (e) {
-    console.warn("Firestore connection not fully ready, falling back to local storage.", e);
-    return false;
-  }
-}
-
-// User Profiles
 export async function getProfile(uid: string): Promise<UserProfile | null> {
   try {
-    const docRef = doc(db, "users", uid);
-    const snap = await getDoc(docRef);
-    if (snap.exists()) {
-      return snap.data() as UserProfile;
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', uid)
+      .maybeSingle();
+
+    if (!error && data) {
+      return {
+        uid: data.id,
+        email: data.email || '',
+        displayName: data.display_name || 'User',
+        avatarUrl: data.avatar_url || undefined,
+        bio: data.bio || undefined,
+        role: data.role || 'user',
+        favorites: data.favorites || [],
+        following: data.following || [],
+        followers: data.followers || [],
+        submittedSongs: data.submitted_songs || [],
+        createdAt: data.created_at || new Date().toISOString()
+      };
     }
   } catch (e) {
-    console.error("Firestore error in getProfile:", e);
+    console.warn("Supabase getProfile error:", e);
   }
 
-  // Fallback
+  // Local fallback
   const profiles = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_PROFILE) || "{}");
   return profiles[uid] || null;
 }
 
 export async function saveProfile(profile: UserProfile): Promise<void> {
   try {
-    await setDoc(doc(db, "users", profile.uid), profile);
-    return;
+    await supabase.from('profiles').upsert({
+      id: profile.uid,
+      email: profile.email,
+      display_name: profile.displayName,
+      avatar_url: profile.avatarUrl || null,
+      bio: profile.bio || null,
+      role: profile.role || 'user',
+      favorites: profile.favorites || [],
+      following: profile.following || [],
+      followers: profile.followers || [],
+      submitted_songs: profile.submittedSongs || [],
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
   } catch (e) {
-    console.error("Firestore error in saveProfile:", e);
+    console.warn("Supabase saveProfile error:", e);
   }
 
-  // Fallback
+  // Local fallback
   const profiles = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_PROFILE) || "{}");
   profiles[profile.uid] = profile;
   localStorage.setItem(LOCAL_STORAGE_KEY_PROFILE, JSON.stringify(profiles));
 }
 
-// Songs
+// -------------------------------------------------------------
+// SONGS (SUPABASE + LOCAL FALLBACK)
+// -------------------------------------------------------------
+
 export async function fetchSongs(filter?: { language?: string; genre?: string; queryText?: string }): Promise<Song[]> {
   let songs: Song[] = [];
+
   try {
-    const qRef = collection(db, "songs");
-    const snap = await getDocs(qRef);
-    songs = snap.docs.map(d => ({ id: d.id, ...d.data() } as Song));
+    const { data, error } = await supabase
+      .from('songs')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && data && data.length > 0) {
+      songs = data.map((d: any) => ({
+        id: d.id,
+        title: d.title,
+        artist: d.artist,
+        language: d.language,
+        album: d.album || 'Single',
+        releaseYear: d.release_year || 2024,
+        genre: d.genre || 'Folk',
+        tags: d.tags || [],
+        lyrics: d.lyrics,
+        transliteration: d.transliteration || '',
+        translation: d.translation || '',
+        youtubeLink: d.youtube_link || '',
+        submittedBy: d.submitted_by || 'system',
+        submittedByUsername: d.submitted_by_username || 'Xur Moderator',
+        createdAt: d.created_at,
+        views: d.views || 0,
+        upvotesCount: d.upvotes_count || 0,
+        upvotedBy: d.upvoted_by || [],
+        commentsCount: d.comments_count || 0,
+        isFlagged: d.is_flagged || false,
+        flagReason: d.flag_reason || undefined
+      }));
+    } else if (!error && (!data || data.length === 0)) {
+      // Seed songs into Supabase table if it's currently empty
+      for (const s of SEED_SONGS) {
+        await supabase.from('songs').upsert({
+          id: s.id,
+          title: s.title,
+          artist: s.artist,
+          language: s.language,
+          album: s.album,
+          release_year: s.releaseYear,
+          genre: s.genre,
+          tags: s.tags,
+          lyrics: s.lyrics,
+          transliteration: s.transliteration,
+          translation: s.translation,
+          youtube_link: s.youtubeLink,
+          submitted_by: s.submittedBy,
+          submitted_by_username: s.submittedByUsername,
+          created_at: s.createdAt,
+          views: s.views,
+          upvotes_count: s.upvotesCount,
+          upvoted_by: s.upvotedBy,
+          comments_count: s.commentsCount,
+          is_flagged: s.isFlagged
+        }, { onConflict: 'id' });
+      }
+      songs = SEED_SONGS as Song[];
+    }
   } catch (e) {
-    console.warn("Firestore fetchSongs failed, using local fallback", e);
+    console.warn("Supabase fetchSongs error, fallback to local:", e);
     songs = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SONGS) || "[]");
   }
 
-  // Merge user submitted lyrics if they exist
+  // Merge user submitted lyrics if any exist
   for (const song of songs) {
-    if (typeof window !== 'undefined') {
-      const local = localStorage.getItem(`xur_user_submitted_lyrics_${song.id}`);
-      if (local) {
-        try {
-          const parsed = JSON.parse(local);
-          song.lyrics = parsed.lyrics;
-          if (parsed.transliteration) song.transliteration = parsed.transliteration;
-          if (parsed.translation) song.translation = parsed.translation;
-          song.hasUserSubmitted = true;
-        } catch (e) {}
-      }
+    const userLyrics = await getLatestUserLyrics(song.id);
+    if (userLyrics) {
+      song.lyrics = userLyrics.lyrics;
+      if (userLyrics.transliteration) song.transliteration = userLyrics.transliteration;
+      if (userLyrics.translation) song.translation = userLyrics.translation;
+      song.hasUserSubmitted = true;
     }
   }
 
-  // Apply filter
+  // Apply filters
   if (filter) {
     const { language, genre, queryText } = filter;
     if (language) {
@@ -404,26 +395,52 @@ export async function fetchSongs(filter?: { language?: string; genre?: string; q
     }
   }
 
-  // Filter out flagged songs unless moderator
   return songs;
 }
 
 export async function getSongById(id: string): Promise<Song | null> {
   let song: Song | null = null;
+
   try {
-    const docRef = doc(db, "songs", id);
-    const snap = await getDoc(docRef);
-    if (snap.exists()) {
-      // Increment view count in background
-      updateDoc(docRef, { views: increment(1) }).catch(console.error);
-      song = { id: snap.id, ...snap.data() } as Song;
+    const { data, error } = await supabase
+      .from('songs')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (!error && data) {
+      song = {
+        id: data.id,
+        title: data.title,
+        artist: data.artist,
+        language: data.language,
+        album: data.album,
+        releaseYear: data.release_year,
+        genre: data.genre,
+        tags: data.tags || [],
+        lyrics: data.lyrics,
+        transliteration: data.transliteration || '',
+        translation: data.translation || '',
+        youtubeLink: data.youtube_link || '',
+        submittedBy: data.submitted_by,
+        submittedByUsername: data.submitted_by_username,
+        createdAt: data.created_at,
+        views: (data.views || 0) + 1,
+        upvotesCount: data.upvotes_count || 0,
+        upvotedBy: data.upvoted_by || [],
+        commentsCount: data.comments_count || 0,
+        isFlagged: data.is_flagged || false,
+        flagReason: data.flag_reason || undefined
+      };
+
+      // Increment view count in Supabase asynchronously
+      supabase.from('songs').update({ views: song.views }).eq('id', id).then();
     }
   } catch (e) {
-    console.warn("Firestore getSongById failed, using local fallback", e);
+    console.warn("Supabase getSongById error:", e);
   }
 
   if (!song) {
-    // Fallback
     const songs: Song[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SONGS) || "[]");
     const idx = songs.findIndex(s => s.id === id);
     if (idx !== -1) {
@@ -434,7 +451,6 @@ export async function getSongById(id: string): Promise<Song | null> {
   }
 
   if (song) {
-    // Fetch and merge user submitted lyrics
     const userLyrics = await getLatestUserLyrics(id);
     if (userLyrics) {
       song.lyrics = userLyrics.lyrics;
@@ -451,10 +467,12 @@ export async function getSongById(id: string): Promise<Song | null> {
 
 export async function addSong(songInput: Omit<Song, "id" | "createdAt" | "views" | "upvotesCount" | "upvotedBy" | "commentsCount" | "isFlagged">): Promise<string> {
   const newId = songInput.title.toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-" + Date.now().toString().slice(-4);
+  const createdAt = new Date().toISOString();
+  
   const newSong: Song = {
     ...songInput,
     id: newId,
-    createdAt: new Date().toISOString(),
+    createdAt,
     views: 0,
     upvotesCount: 0,
     upvotedBy: [],
@@ -463,8 +481,29 @@ export async function addSong(songInput: Omit<Song, "id" | "createdAt" | "views"
   };
 
   try {
-    await setDoc(doc(db, "songs", newId), newSong);
-    // Create initial version
+    await supabase.from('songs').insert({
+      id: newId,
+      title: newSong.title,
+      artist: newSong.artist,
+      language: newSong.language,
+      album: newSong.album,
+      release_year: newSong.releaseYear,
+      genre: newSong.genre,
+      tags: newSong.tags,
+      lyrics: newSong.lyrics,
+      transliteration: newSong.transliteration,
+      translation: newSong.translation,
+      youtube_link: newSong.youtubeLink,
+      submitted_by: newSong.submittedBy,
+      submitted_by_username: newSong.submittedByUsername,
+      created_at: createdAt,
+      views: 0,
+      upvotes_count: 0,
+      upvoted_by: [],
+      comments_count: 0,
+      is_flagged: false
+    });
+
     const initialVersion: SongVersion = {
       id: "v-initial-" + Date.now(),
       songId: newId,
@@ -474,33 +513,28 @@ export async function addSong(songInput: Omit<Song, "id" | "createdAt" | "views"
       editedBy: newSong.submittedBy,
       editedByUsername: newSong.submittedByUsername,
       editNotes: "Initial lyrics submission",
-      createdAt: newSong.createdAt
+      createdAt
     };
-    await setDoc(doc(db, `songs/${newId}/versions`, initialVersion.id), initialVersion);
-    return newId;
+
+    await supabase.from('song_versions').insert({
+      id: initialVersion.id,
+      song_id: newId,
+      lyrics: newSong.lyrics,
+      transliteration: newSong.transliteration,
+      translation: newSong.translation,
+      edited_by: newSong.submittedBy,
+      edited_by_username: newSong.submittedByUsername,
+      edit_notes: "Initial lyrics submission",
+      created_at: createdAt
+    });
   } catch (e) {
-    console.error("Firestore addSong failed, saving locally", e);
+    console.warn("Supabase addSong error:", e);
   }
 
   // Local fallback
   const songs = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SONGS) || "[]");
   songs.push(newSong);
   localStorage.setItem(LOCAL_STORAGE_KEY_SONGS, JSON.stringify(songs));
-
-  // Also save initial version locally
-  const versions = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_VERSIONS) || "[]");
-  versions.push({
-    id: "v-initial-" + Date.now(),
-    songId: newId,
-    lyrics: newSong.lyrics,
-    transliteration: newSong.transliteration,
-    translation: newSong.translation,
-    editedBy: newSong.submittedBy,
-    editedByUsername: newSong.submittedByUsername,
-    editNotes: "Initial lyrics submission",
-    createdAt: newSong.createdAt
-  });
-  localStorage.setItem(LOCAL_STORAGE_KEY_VERSIONS, JSON.stringify(versions));
 
   return newId;
 }
@@ -513,18 +547,35 @@ export async function editSongLyrics(
   editNotes: string
 ): Promise<void> {
   const versionId = "v-" + Date.now();
-  const newVersion: SongVersion = {
-    id: versionId,
-    songId,
-    lyrics: updates.lyrics,
-    transliteration: updates.transliteration,
-    translation: updates.translation,
-    editedBy: editorId,
-    editedByUsername: editorName,
-    editNotes,
-    createdAt: new Date().toISOString()
-  };
+  const createdAt = new Date().toISOString();
 
+  try {
+    await supabase.from('song_versions').insert({
+      id: versionId,
+      song_id: songId,
+      lyrics: updates.lyrics,
+      transliteration: updates.transliteration || '',
+      translation: updates.translation || '',
+      edited_by: editorId,
+      edited_by_username: editorName,
+      edit_notes: editNotes,
+      created_at: createdAt
+    });
+
+    await supabase.from('user_submitted_lyrics').upsert({
+      song_id: songId,
+      lyrics: updates.lyrics,
+      transliteration: updates.transliteration || '',
+      translation: updates.translation || '',
+      submitted_by: editorId,
+      submitted_by_username: editorName,
+      created_at: createdAt
+    }, { onConflict: 'song_id' });
+  } catch (e) {
+    console.warn("Supabase editSongLyrics error:", e);
+  }
+
+  // Fallback / Local Storage
   const userLyricsData = {
     songId,
     lyrics: updates.lyrics,
@@ -532,50 +583,34 @@ export async function editSongLyrics(
     translation: updates.translation || "",
     submittedBy: editorId,
     submittedByUsername: editorName,
-    createdAt: new Date().toISOString()
+    createdAt
   };
-
-  try {
-    // 1. Add version doc
-    await setDoc(doc(db, `songs/${songId}/versions`, versionId), newVersion);
-    // 2. Save user-submitted lyrics to Firestore
-    await setDoc(doc(db, "user_submitted_lyrics", songId), userLyricsData);
-    // 3. Update song version tracking on song doc
-    await updateDoc(doc(db, "songs", songId), {
-      currentVersionId: versionId
-    });
-
-    // 4. Save to Supabase (upsert)
-    if (supabase) {
-      const { error } = await supabase
-        .from('user_submitted_lyrics')
-        .upsert({
-          song_id: songId,
-          lyrics: updates.lyrics,
-          transliteration: updates.transliteration || '',
-          translation: updates.translation || '',
-          submitted_by: editorId,
-          submitted_by_username: editorName,
-          created_at: new Date().toISOString()
-        }, { onConflict: 'song_id' });
-      if (error) {
-        console.warn("Supabase lyrics upsert error:", error);
-      }
-    }
-  } catch (e) {
-    console.error("Firestore editSongLyrics failed, saving locally", e);
-  }
-
-  // Fallback / Local Storage
   localStorage.setItem(`xur_user_submitted_lyrics_${songId}`, JSON.stringify(userLyricsData));
-
-  const versions: SongVersion[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_VERSIONS) || "[]");
-  versions.push(newVersion);
-  localStorage.setItem(LOCAL_STORAGE_KEY_VERSIONS, JSON.stringify(versions));
 }
 
 export async function getLatestUserLyrics(songId: string): Promise<any | null> {
-  // Try local storage first (instant fallback)
+  try {
+    const { data, error } = await supabase
+      .from('user_submitted_lyrics')
+      .select('*')
+      .eq('song_id', songId)
+      .maybeSingle();
+
+    if (!error && data) {
+      return {
+        songId: data.song_id,
+        lyrics: data.lyrics,
+        transliteration: data.transliteration,
+        translation: data.translation,
+        submittedBy: data.submitted_by,
+        submittedByUsername: data.submitted_by_username,
+        createdAt: data.created_at
+      };
+    }
+  } catch (e) {
+    console.warn("Supabase getLatestUserLyrics error:", e);
+  }
+
   if (typeof window !== "undefined") {
     const local = localStorage.getItem(`xur_user_submitted_lyrics_${songId}`);
     if (local) {
@@ -583,43 +618,6 @@ export async function getLatestUserLyrics(songId: string): Promise<any | null> {
         return JSON.parse(local);
       } catch (e) {}
     }
-  }
-
-  // Try Supabase if configured
-  if (supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('user_submitted_lyrics')
-        .select('*')
-        .eq('song_id', songId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      
-      if (!error && data) {
-        return {
-          songId: data.song_id,
-          lyrics: data.lyrics,
-          transliteration: data.transliteration,
-          translation: data.translation,
-          submittedBy: data.submitted_by,
-          submittedByUsername: data.submitted_by_username,
-          createdAt: data.created_at
-        };
-      }
-    } catch (e) {
-      console.warn("Supabase fetch user lyrics failed:", e);
-    }
-  }
-
-  // Try Firestore
-  try {
-    const snap = await getDoc(doc(db, "user_submitted_lyrics", songId));
-    if (snap.exists()) {
-      return snap.data();
-    }
-  } catch (e) {
-    console.warn("Firestore fetch of user lyrics failed:", e);
   }
 
   return null;
@@ -630,32 +628,38 @@ export async function deleteUserSubmittedLyrics(songId: string): Promise<void> {
     localStorage.removeItem(`xur_user_submitted_lyrics_${songId}`);
   }
 
-  if (supabase) {
-    try {
-      await supabase.from('user_submitted_lyrics').delete().eq('song_id', songId);
-    } catch (e) {
-      console.warn("Supabase delete user lyrics failed:", e);
-    }
-  }
-
   try {
-    const { deleteDoc } = await import('firebase/firestore');
-    await deleteDoc(doc(db, "user_submitted_lyrics", songId));
+    await supabase.from('user_submitted_lyrics').delete().eq('song_id', songId);
   } catch (e) {
-    console.warn("Firestore delete user lyrics failed:", e);
+    console.warn("Supabase deleteUserSubmittedLyrics error:", e);
   }
 }
 
 export async function fetchSongVersions(songId: string): Promise<SongVersion[]> {
   try {
-    const snap = await getDocs(collection(db, `songs/${songId}/versions`));
-    const sorted = snap.docs.map(d => d.data() as SongVersion);
-    return sorted.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const { data, error } = await supabase
+      .from('song_versions')
+      .select('*')
+      .eq('song_id', songId)
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      return data.map((d: any) => ({
+        id: d.id,
+        songId: d.song_id,
+        lyrics: d.lyrics,
+        transliteration: d.transliteration,
+        translation: d.translation,
+        editedBy: d.edited_by,
+        editedByUsername: d.edited_by_username,
+        editNotes: d.edit_notes,
+        createdAt: d.created_at
+      }));
+    }
   } catch (e) {
-    console.warn("Firestore fetchSongVersions failed, using local", e);
+    console.warn("Supabase fetchSongVersions error:", e);
   }
 
-  // Fallback
   const versions: SongVersion[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_VERSIONS) || "[]");
   return versions
     .filter(v => v.songId === songId)
@@ -664,31 +668,33 @@ export async function fetchSongVersions(songId: string): Promise<SongVersion[]> 
 
 export async function toggleSongUpvote(songId: string, userId: string): Promise<{ upvoted: boolean; count: number }> {
   try {
-    const songRef = doc(db, "songs", songId);
-    const snap = await getDoc(songRef);
-    if (snap.exists()) {
-      const data = snap.data() as Song;
-      const upvotedBy = data.upvotedBy || [];
+    const { data: song } = await supabase.from('songs').select('upvoted_by, upvotes_count').eq('id', songId).single();
+    if (song) {
+      const upvotedBy: string[] = song.upvoted_by || [];
       const hasUpvoted = upvotedBy.includes(userId);
+      let updatedList = [];
+      let newCount = song.upvotes_count || 0;
+
       if (hasUpvoted) {
-        await updateDoc(songRef, {
-          upvotedBy: arrayRemove(userId),
-          upvotesCount: increment(-1)
-        });
-        return { upvoted: false, count: data.upvotesCount - 1 };
+        updatedList = upvotedBy.filter(id => id !== userId);
+        newCount = Math.max(0, newCount - 1);
       } else {
-        await updateDoc(songRef, {
-          upvotedBy: arrayUnion(userId),
-          upvotesCount: increment(1)
-        });
-        return { upvoted: true, count: data.upvotesCount + 1 };
+        updatedList = [...upvotedBy, userId];
+        newCount += 1;
       }
+
+      await supabase.from('songs').update({
+        upvoted_by: updatedList,
+        upvotes_count: newCount
+      }).eq('id', songId);
+
+      return { upvoted: !hasUpvoted, count: newCount };
     }
   } catch (e) {
-    console.error("Firestore toggleUpvote failed, fallback to local", e);
+    console.warn("Supabase toggleSongUpvote error:", e);
   }
 
-  // Fallback
+  // Local fallback
   const songs: Song[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SONGS) || "[]");
   const idx = songs.findIndex(s => s.id === songId);
   if (idx !== -1) {
@@ -707,21 +713,41 @@ export async function toggleSongUpvote(songId: string, userId: string): Promise<
     localStorage.setItem(LOCAL_STORAGE_KEY_SONGS, JSON.stringify(songs));
     return { upvoted, count: song.upvotesCount };
   }
+
   return { upvoted: false, count: 0 };
 }
 
-// Comments
+// -------------------------------------------------------------
+// COMMENTS (SUPABASE + LOCAL FALLBACK)
+// -------------------------------------------------------------
+
 export async function fetchComments(songId: string): Promise<Comment[]> {
   try {
-    const q = query(collection(db, "comments"), where("songId", "==", songId));
-    const snap = await getDocs(q);
-    const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as Comment));
-    return list.sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('song_id', songId)
+      .order('created_at', { ascending: true });
+
+    if (!error && data) {
+      return data.map((d: any) => ({
+        id: d.id,
+        songId: d.song_id,
+        userId: d.user_id,
+        username: d.username,
+        avatarUrl: d.user_avatar || d.avatar_url,
+        content: d.content,
+        parentId: d.parent_id,
+        upvotes: d.upvotes || [],
+        reactions: d.reactions || {},
+        createdAt: d.created_at,
+        isFlagged: d.is_flagged || false
+      }));
+    }
   } catch (e) {
-    console.warn("Firestore fetchComments failed, fallback to local", e);
+    console.warn("Supabase fetchComments error:", e);
   }
 
-  // Fallback
   const comments: Comment[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_COMMENTS) || "[]");
   return comments
     .filter(c => c.songId === songId && !c.isFlagged)
@@ -730,23 +756,39 @@ export async function fetchComments(songId: string): Promise<Comment[]> {
 
 export async function addComment(commentInput: Omit<Comment, "id" | "createdAt" | "upvotes" | "reactions" | "isFlagged">): Promise<Comment> {
   const newId = "c-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6);
+  const createdAt = new Date().toISOString();
+
   const newComment: Comment = {
     ...commentInput,
     id: newId,
     upvotes: [],
     reactions: {},
-    createdAt: new Date().toISOString(),
+    createdAt,
     isFlagged: false
   };
 
   try {
-    await setDoc(doc(db, "comments", newId), newComment);
-    // Increment commentsCount in song
-    await updateDoc(doc(db, "songs", commentInput.songId), {
-      commentsCount: increment(1)
+    await supabase.from('comments').insert({
+      id: newId,
+      song_id: commentInput.songId,
+      user_id: commentInput.userId,
+      username: commentInput.username,
+      user_avatar: commentInput.avatarUrl || null,
+      content: commentInput.content,
+      parent_id: commentInput.parentId || null,
+      upvotes: [],
+      reactions: {},
+      created_at: createdAt,
+      is_flagged: false
     });
+
+    // Increment comment count on song
+    const { data: song } = await supabase.from('songs').select('comments_count').eq('id', commentInput.songId).single();
+    if (song) {
+      await supabase.from('songs').update({ comments_count: (song.comments_count || 0) + 1 }).eq('id', commentInput.songId);
+    }
   } catch (e) {
-    console.error("Firestore addComment failed, saving locally", e);
+    console.warn("Supabase addComment error:", e);
   }
 
   // Local fallback
@@ -754,18 +796,43 @@ export async function addComment(commentInput: Omit<Comment, "id" | "createdAt" 
   comments.push(newComment);
   localStorage.setItem(LOCAL_STORAGE_KEY_COMMENTS, JSON.stringify(comments));
 
-  const songs: Song[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SONGS) || "[]");
-  const sIdx = songs.findIndex(s => s.id === commentInput.songId);
-  if (sIdx !== -1) {
-    songs[sIdx].commentsCount += 1;
-    localStorage.setItem(LOCAL_STORAGE_KEY_SONGS, JSON.stringify(songs));
-  }
-
   return newComment;
 }
 
 export async function toggleCommentUpvote(commentId: string, userId: string): Promise<Comment | null> {
-  // Fallback / standard
+  try {
+    const { data: comment } = await supabase.from('comments').select('*').eq('id', commentId).single();
+    if (comment) {
+      const upvotes: string[] = comment.upvotes || [];
+      const userIdx = upvotes.indexOf(userId);
+      let updatedUpvotes = [];
+      if (userIdx !== -1) {
+        updatedUpvotes = upvotes.filter(u => u !== userId);
+      } else {
+        updatedUpvotes = [...upvotes, userId];
+      }
+
+      await supabase.from('comments').update({ upvotes: updatedUpvotes }).eq('id', commentId);
+
+      return {
+        id: comment.id,
+        songId: comment.song_id,
+        userId: comment.user_id,
+        username: comment.username,
+        avatarUrl: comment.user_avatar || comment.avatar_url,
+        content: comment.content,
+        parentId: comment.parent_id,
+        upvotes: updatedUpvotes,
+        reactions: comment.reactions || {},
+        createdAt: comment.created_at,
+        isFlagged: comment.is_flagged || false
+      };
+    }
+  } catch (e) {
+    console.warn("Supabase toggleCommentUpvote error:", e);
+  }
+
+  // Local fallback
   const comments: Comment[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_COMMENTS) || "[]");
   const idx = comments.findIndex(c => c.id === commentId);
   if (idx !== -1) {
@@ -778,208 +845,71 @@ export async function toggleCommentUpvote(commentId: string, userId: string): Pr
       comment.upvotes.push(userId);
     }
     localStorage.setItem(LOCAL_STORAGE_KEY_COMMENTS, JSON.stringify(comments));
-
-    // Try to mirror in firestore
-    try {
-      await updateDoc(doc(db, "comments", commentId), {
-        upvotes: comment.upvotes
-      });
-    } catch (e) {
-      console.warn("Firestore comment upvote sync failed", e);
-    }
-
     return comment;
   }
+
   return null;
 }
 
 export async function addCommentReaction(commentId: string, emoji: string, userId: string): Promise<Comment | null> {
+  try {
+    const { data: comment } = await supabase.from('comments').select('*').eq('id', commentId).single();
+    if (comment) {
+      const reactions = comment.reactions || {};
+      if (!reactions[emoji]) reactions[emoji] = [];
+      const userIdx = reactions[emoji].indexOf(userId);
+      if (userIdx !== -1) {
+        reactions[emoji].splice(userIdx, 1);
+        if (reactions[emoji].length === 0) delete reactions[emoji];
+      } else {
+        reactions[emoji].push(userId);
+      }
+
+      await supabase.from('comments').update({ reactions }).eq('id', commentId);
+
+      return {
+        id: comment.id,
+        songId: comment.song_id,
+        userId: comment.user_id,
+        username: comment.username,
+        avatarUrl: comment.user_avatar || comment.avatar_url,
+        content: comment.content,
+        parentId: comment.parent_id,
+        upvotes: comment.upvotes || [],
+        reactions,
+        createdAt: comment.created_at,
+        isFlagged: comment.is_flagged || false
+      };
+    }
+  } catch (e) {
+    console.warn("Supabase addCommentReaction error:", e);
+  }
+
+  // Local fallback
   const comments: Comment[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_COMMENTS) || "[]");
   const idx = comments.findIndex(c => c.id === commentId);
   if (idx !== -1) {
     const comment = comments[idx];
     if (!comment.reactions) comment.reactions = {};
     if (!comment.reactions[emoji]) comment.reactions[emoji] = [];
-    
     const userIdx = comment.reactions[emoji].indexOf(userId);
     if (userIdx !== -1) {
-      // Remove
       comment.reactions[emoji].splice(userIdx, 1);
-      if (comment.reactions[emoji].length === 0) {
-        delete comment.reactions[emoji];
-      }
+      if (comment.reactions[emoji].length === 0) delete comment.reactions[emoji];
     } else {
-      // Add
       comment.reactions[emoji].push(userId);
     }
-    
     localStorage.setItem(LOCAL_STORAGE_KEY_COMMENTS, JSON.stringify(comments));
-
-    // Try to mirror in firestore
-    try {
-      await updateDoc(doc(db, "comments", commentId), {
-        reactions: comment.reactions
-      });
-    } catch (e) {
-      console.warn("Firestore comment reaction sync failed", e);
-    }
-
     return comment;
   }
+
   return null;
 }
 
-// Moderation / Flags
-export async function reportFlag(report: Omit<FlagReport, "id" | "createdAt" | "status">): Promise<void> {
-  const newReport: FlagReport = {
-    ...report,
-    id: "flag-" + Date.now(),
-    status: 'pending',
-    createdAt: new Date().toISOString()
-  };
+// -------------------------------------------------------------
+// FEEDBACK & CONTACT FORMS (SUPABASE + LOCAL FALLBACK)
+// -------------------------------------------------------------
 
-  try {
-    await setDoc(doc(db, "flags", newReport.id), newReport);
-    // Mark target as flagged
-    if (report.type === 'song') {
-      await updateDoc(doc(db, "songs", report.targetId), { isFlagged: true, flagReason: report.reason });
-    } else {
-      await updateDoc(doc(db, "comments", report.targetId), { isFlagged: true });
-    }
-  } catch (e) {
-    console.error("Firestore flag report failed, saving locally", e);
-  }
-
-  // Fallback
-  const flags = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_FLAGS) || "[]");
-  flags.push(newReport);
-  localStorage.setItem(LOCAL_STORAGE_KEY_FLAGS, JSON.stringify(flags));
-
-  if (report.type === 'song') {
-    const songs: Song[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SONGS) || "[]");
-    const sIdx = songs.findIndex(s => s.id === report.targetId);
-    if (sIdx !== -1) {
-      songs[sIdx].isFlagged = true;
-      songs[sIdx].flagReason = report.reason;
-      localStorage.setItem(LOCAL_STORAGE_KEY_SONGS, JSON.stringify(songs));
-    }
-  } else {
-    const comments: Comment[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_COMMENTS) || "[]");
-    const cIdx = comments.findIndex(c => c.id === report.targetId);
-    if (cIdx !== -1) {
-      comments[cIdx].isFlagged = true;
-      localStorage.setItem(LOCAL_STORAGE_KEY_COMMENTS, JSON.stringify(comments));
-    }
-  }
-}
-
-export async function fetchFlags(): Promise<FlagReport[]> {
-  try {
-    const snap = await getDocs(collection(db, "flags"));
-    return snap.docs.map(d => d.data() as FlagReport);
-  } catch (e) {
-    console.warn("Firestore fetchFlags failed, using local", e);
-  }
-
-  return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_FLAGS) || "[]");
-}
-
-export async function resolveFlag(flagId: string, action: 'resolve' | 'dismiss'): Promise<void> {
-  // Update local
-  const flags: FlagReport[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_FLAGS) || "[]");
-  const idx = flags.findIndex(f => f.id === flagId);
-  if (idx !== -1) {
-    const flag = flags[idx];
-    flag.status = action === 'resolve' ? 'resolved' : 'dismissed';
-    localStorage.setItem(LOCAL_STORAGE_KEY_FLAGS, JSON.stringify(flags));
-
-    // Remove flag status on original song/comment if dismissed
-    if (action === 'dismiss') {
-      if (flag.type === 'song') {
-        const songs: Song[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SONGS) || "[]");
-        const sIdx = songs.findIndex(s => s.id === flag.targetId);
-        if (sIdx !== -1) {
-          songs[sIdx].isFlagged = false;
-          delete songs[sIdx].flagReason;
-          localStorage.setItem(LOCAL_STORAGE_KEY_SONGS, JSON.stringify(songs));
-        }
-      } else {
-        const comments: Comment[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_COMMENTS) || "[]");
-        const cIdx = comments.findIndex(c => c.id === flag.targetId);
-        if (cIdx !== -1) {
-          comments[cIdx].isFlagged = false;
-          localStorage.setItem(LOCAL_STORAGE_KEY_COMMENTS, JSON.stringify(comments));
-        }
-      }
-    } else {
-      // If resolved (kept hidden), remove permanently from public feeds
-      if (flag.type === 'song') {
-        let songs: Song[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SONGS) || "[]");
-        songs = songs.filter(s => s.id !== flag.targetId);
-        localStorage.setItem(LOCAL_STORAGE_KEY_SONGS, JSON.stringify(songs));
-      } else {
-        let comments: Comment[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_COMMENTS) || "[]");
-        comments = comments.filter(c => c.id !== flag.targetId);
-        localStorage.setItem(LOCAL_STORAGE_KEY_COMMENTS, JSON.stringify(comments));
-      }
-    }
-
-    try {
-      await updateDoc(doc(db, "flags", flagId), { status: flag.status });
-      if (action === 'dismiss') {
-        if (flag.type === 'song') {
-          await updateDoc(doc(db, "songs", flag.targetId), { isFlagged: false });
-        } else {
-          await updateDoc(doc(db, "comments", flag.targetId), { isFlagged: false });
-        }
-      }
-    } catch (e) {
-      console.warn("Firestore resolving flag sync failed", e);
-    }
-  }
-}
-
-// Fetch all registered users
-export async function fetchUsers(): Promise<UserProfile[]> {
-  try {
-    const qRef = collection(db, "users");
-    const snap = await getDocs(qRef);
-    return snap.docs.map(d => d.data() as UserProfile);
-  } catch (e) {
-    console.warn("Firestore fetchUsers failed", e);
-    const profiles = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_PROFILE) || "{}");
-    return Object.values(profiles);
-  }
-}
-
-// Dynamic visitor/page load tracking in Firestore
-export async function incrementAndGetPageViews(): Promise<number> {
-  const docRef = doc(db, "system_metadata", "stats");
-  try {
-    const snap = await getDoc(docRef);
-    let currentViews = 12480; // Baseline starting value
-    if (snap.exists()) {
-      const data = snap.data();
-      if (data && typeof data.pageViews === "number") {
-        currentViews = data.pageViews;
-      }
-    }
-    const newViews = currentViews + 1;
-    await setDoc(docRef, { pageViews: newViews }, { merge: true });
-    return newViews;
-  } catch (e) {
-    console.warn("Firestore page views update failed, fallback to local storage", e);
-    const localViews = Number(localStorage.getItem("xur_local_page_views") || "12480") + 1;
-    localStorage.setItem("xur_local_page_views", String(localViews));
-    return localViews;
-  }
-}
-
-// Local storage keys for new fallback data
-const LOCAL_STORAGE_KEY_FEEDBACKS = "xur_local_feedbacks";
-const LOCAL_STORAGE_KEY_ACTIVITIES = "xur_local_activities";
-
-// Submit user feedback
 export async function submitFeedback(
   rating: number,
   category: 'bug' | 'suggestion' | 'praise' | 'other',
@@ -1001,59 +931,107 @@ export async function submitFeedback(
     songTitle: songTitle || undefined
   };
 
-  // 1. Sync to local storage immediately so it is never lost
   try {
-    const localFbs = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_FEEDBACKS) || "[]");
-    localFbs.unshift(feedback);
-    localStorage.setItem(LOCAL_STORAGE_KEY_FEEDBACKS, JSON.stringify(localFbs));
-  } catch (err) {
-    console.error("Local storage feedback sync failed", err);
+    await supabase.from('feedbacks').insert({
+      id: feedback.id,
+      user_id: feedback.userId,
+      username: feedback.username,
+      rating: feedback.rating,
+      category: feedback.category,
+      message: feedback.message,
+      song_id: feedback.songId || null,
+      song_title: feedback.songTitle || null,
+      created_at: feedback.createdAt
+    });
+  } catch (e) {
+    console.warn("Supabase submitFeedback error:", e);
   }
 
-  // 2. Sync to Firestore, propagate errors so the UI can notify the user
-  try {
-    await setDoc(doc(db, "feedbacks", feedback.id), feedback);
-  } catch (e) {
-    console.error("Firestore submitFeedback failed:", e);
-    throw new Error(e instanceof Error ? e.message : "Could not write feedback to database.");
-  }
+  // Local sync
+  const localFbs = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_FEEDBACKS) || "[]");
+  localFbs.unshift(feedback);
+  localStorage.setItem(LOCAL_STORAGE_KEY_FEEDBACKS, JSON.stringify(localFbs));
 
   return feedback;
 }
 
-// Fetch user feedbacks
 export async function fetchFeedback(): Promise<UserFeedback[]> {
   try {
-    const snap = await getDocs(query(collection(db, "feedbacks"), orderBy("createdAt", "desc")));
-    const list = snap.docs.map(d => d.data() as UserFeedback);
-    return list;
+    const { data, error } = await supabase
+      .from('feedbacks')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      return data.map((d: any) => ({
+        id: d.id,
+        userId: d.user_id,
+        username: d.username,
+        rating: d.rating,
+        category: d.category,
+        message: d.message,
+        createdAt: d.created_at,
+        songId: d.song_id,
+        songTitle: d.song_title
+      }));
+    }
   } catch (e) {
-    console.warn("Firestore fetchFeedback failed, loading local", e);
-    return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_FEEDBACKS) || "[]");
+    console.warn("Supabase fetchFeedback error:", e);
   }
+
+  return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_FEEDBACKS) || "[]");
 }
 
-// Delete user feedback
 export async function deleteFeedback(feedbackId: string): Promise<void> {
-  // 1. Delete from local storage
   try {
-    const localFbs = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_FEEDBACKS) || "[]");
-    const updated = localFbs.filter((fb: UserFeedback) => fb.id !== feedbackId);
-    localStorage.setItem(LOCAL_STORAGE_KEY_FEEDBACKS, JSON.stringify(updated));
-  } catch (err) {
-    console.error("Local storage feedback delete failed", err);
+    await supabase.from('feedbacks').delete().eq('id', feedbackId);
+  } catch (e) {
+    console.warn("Supabase deleteFeedback error:", e);
   }
 
-  // 2. Delete from Firestore
+  const localFbs = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_FEEDBACKS) || "[]");
+  const updated = localFbs.filter((fb: UserFeedback) => fb.id !== feedbackId);
+  localStorage.setItem(LOCAL_STORAGE_KEY_FEEDBACKS, JSON.stringify(updated));
+}
+
+export async function submitContactMessage(
+  name: string,
+  email: string,
+  subject: string,
+  message: string
+): Promise<void> {
+  if (!email || !message) throw new Error("Email and message are required.");
+
   try {
-    await deleteDoc(doc(db, "feedbacks", feedbackId));
+    await supabase.from('contact_messages').insert({
+      name,
+      email,
+      subject,
+      message,
+      created_at: new Date().toISOString()
+    });
   } catch (e) {
-    console.error("Firestore deleteFeedback failed:", e);
-    throw new Error(e instanceof Error ? e.message : "Could not delete feedback from database.");
+    console.warn("Supabase submitContactMessage error:", e);
   }
 }
 
-// Log a community action / user activity
+export async function submitSubscriber(email: string): Promise<void> {
+  if (!email) throw new Error("Email is required.");
+
+  try {
+    await supabase.from('subscribers').upsert({
+      email,
+      created_at: new Date().toISOString()
+    }, { onConflict: 'email' });
+  } catch (e) {
+    console.warn("Supabase submitSubscriber error:", e);
+  }
+}
+
+// -------------------------------------------------------------
+// USER ACTIVITIES (SUPABASE + LOCAL FALLBACK)
+// -------------------------------------------------------------
+
 export async function logUserActivity(
   actionType: 'upvote' | 'comment' | 'song_submit' | 'lyrics_edit' | 'feedback_submit' | 'share' | 'visit',
   details: string,
@@ -1071,37 +1049,184 @@ export async function logUserActivity(
     createdAt: new Date().toISOString()
   };
 
-  // 1. Sync to local storage
   try {
-    const localActs = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_ACTIVITIES) || "[]");
-    localActs.unshift(activity);
-    // Keep only latest 100 activities locally to prevent bloated storage
-    if (localActs.length > 100) localActs.pop();
-    localStorage.setItem(LOCAL_STORAGE_KEY_ACTIVITIES, JSON.stringify(localActs));
-  } catch (err) {
-    console.error("Local storage activity sync failed", err);
+    await supabase.from('user_activities').insert({
+      id: activity.id,
+      user_id: activity.userId,
+      username: activity.username,
+      action_type: activity.actionType,
+      details: activity.details,
+      song_id: activity.songId || null,
+      created_at: activity.createdAt
+    });
+  } catch (e) {
+    console.warn("Supabase logUserActivity error:", e);
   }
 
-  // 2. Sync to Firestore
-  try {
-    await setDoc(doc(db, "user_activities", activity.id), activity);
-  } catch (e) {
-    console.warn("Firestore logUserActivity failed, running locally", e);
-  }
+  const localActs = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_ACTIVITIES) || "[]");
+  localActs.unshift(activity);
+  if (localActs.length > 100) localActs.pop();
+  localStorage.setItem(LOCAL_STORAGE_KEY_ACTIVITIES, JSON.stringify(localActs));
 
   return activity;
 }
 
-// Fetch latest platform activities
 export async function fetchUserActivities(): Promise<UserActivity[]> {
   try {
-    const qRef = query(collection(db, "user_activities"), orderBy("createdAt", "desc"), limit(25));
-    const snap = await getDocs(qRef);
-    return snap.docs.map(d => d.data() as UserActivity);
+    const { data, error } = await supabase
+      .from('user_activities')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(25);
+
+    if (!error && data) {
+      return data.map((d: any) => ({
+        id: d.id,
+        userId: d.user_id,
+        username: d.username,
+        actionType: d.action_type,
+        details: d.details,
+        songId: d.song_id,
+        createdAt: d.created_at
+      }));
+    }
   } catch (e) {
-    console.warn("Firestore fetchUserActivities failed, loading local", e);
-    return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_ACTIVITIES) || "[]");
+    console.warn("Supabase fetchUserActivities error:", e);
+  }
+
+  return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_ACTIVITIES) || "[]");
+}
+
+// -------------------------------------------------------------
+// MODERATION & FLAGS (SUPABASE + LOCAL FALLBACK)
+// -------------------------------------------------------------
+
+export async function reportFlag(report: Omit<FlagReport, "id" | "createdAt" | "status">): Promise<void> {
+  const newReport: FlagReport = {
+    ...report,
+    id: "flag-" + Date.now(),
+    status: 'pending',
+    createdAt: new Date().toISOString()
+  };
+
+  try {
+    await supabase.from('flags').insert({
+      id: newReport.id,
+      type: newReport.type,
+      target_id: newReport.targetId,
+      song_id: newReport.songId || null,
+      reason: newReport.reason,
+      details: newReport.details || '',
+      reported_by: newReport.reportedBy,
+      reported_by_username: newReport.reportedByUsername || 'Anonymous',
+      status: 'pending',
+      created_at: newReport.createdAt
+    });
+
+    if (report.type === 'song') {
+      await supabase.from('songs').update({ is_flagged: true, flag_reason: report.reason }).eq('id', report.targetId);
+    } else {
+      await supabase.from('comments').update({ is_flagged: true }).eq('id', report.targetId);
+    }
+  } catch (e) {
+    console.warn("Supabase reportFlag error:", e);
+  }
+
+  const flags = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_FLAGS) || "[]");
+  flags.push(newReport);
+  localStorage.setItem(LOCAL_STORAGE_KEY_FLAGS, JSON.stringify(flags));
+}
+
+export async function fetchFlags(): Promise<FlagReport[]> {
+  try {
+    const { data, error } = await supabase
+      .from('flags')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      return data.map((d: any) => ({
+        id: d.id,
+        type: d.type,
+        targetId: d.target_id,
+        songId: d.song_id || '',
+        reason: d.reason,
+        details: d.details || '',
+        reportedBy: d.reported_by,
+        reportedByUsername: d.reported_by_username || 'Anonymous',
+        status: d.status,
+        createdAt: d.created_at
+      }));
+    }
+  } catch (e) {
+    console.warn("Supabase fetchFlags error:", e);
+  }
+
+  return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_FLAGS) || "[]");
+}
+
+export async function resolveFlag(flagId: string, action: 'resolve' | 'dismiss'): Promise<void> {
+  try {
+    await supabase.from('flags').update({ status: action === 'resolve' ? 'resolved' : 'dismissed' }).eq('id', flagId);
+    const { data: flag } = await supabase.from('flags').select('*').eq('id', flagId).single();
+    if (flag) {
+      if (action === 'dismiss') {
+        if (flag.type === 'song') {
+          await supabase.from('songs').update({ is_flagged: false, flag_reason: null }).eq('id', flag.target_id);
+        } else {
+          await supabase.from('comments').update({ is_flagged: false }).eq('id', flag.target_id);
+        }
+      } else {
+        if (flag.type === 'song') {
+          await supabase.from('songs').delete().eq('id', flag.target_id);
+        } else {
+          await supabase.from('comments').delete().eq('id', flag.target_id);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Supabase resolveFlag error:", e);
   }
 }
 
+export async function fetchUsers(): Promise<UserProfile[]> {
+  try {
+    const { data, error } = await supabase.from('profiles').select('*');
+    if (!error && data) {
+      return data.map((d: any) => ({
+        uid: d.id,
+        email: d.email || '',
+        displayName: d.display_name || 'User',
+        avatarUrl: d.avatar_url || undefined,
+        bio: d.bio || undefined,
+        role: d.role || 'user',
+        favorites: d.favorites || [],
+        following: d.following || [],
+        followers: d.followers || [],
+        submittedSongs: d.submitted_songs || [],
+        createdAt: d.created_at
+      }));
+    }
+  } catch (e) {
+    console.warn("Supabase fetchUsers error:", e);
+  }
 
+  const profiles = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_PROFILE) || "{}");
+  return Object.values(profiles);
+}
+
+export async function incrementAndGetPageViews(): Promise<number> {
+  try {
+    const { data } = await supabase.from('system_stats').select('page_views').eq('id', 'stats').maybeSingle();
+    let currentViews = data?.page_views || 12480;
+    const newViews = currentViews + 1;
+    await supabase.from('system_stats').upsert({ id: 'stats', page_views: newViews }, { onConflict: 'id' });
+    return newViews;
+  } catch (e) {
+    console.warn("Supabase page views update error:", e);
+  }
+
+  const localViews = Number(localStorage.getItem("xur_local_page_views") || "12480") + 1;
+  localStorage.setItem("xur_local_page_views", String(localViews));
+  return localViews;
+}
